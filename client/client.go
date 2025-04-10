@@ -16,6 +16,7 @@ import (
 const (
 	baseURL        = "https://api.accessgrid.com/v1"
 	defaultTimeout = 30 * time.Second
+	version        = "0.1.0"
 )
 
 // Client is the main AccessGrid API client
@@ -85,18 +86,17 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 		return fmt.Errorf("error creating request: %w", err)
 	}
 
-	// Set headers
-	timestamp := time.Now().UTC().Format(time.RFC3339)
+	// Set headers to match Python SDK
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-AccessGrid-Account-ID", c.AccountID)
-	req.Header.Set("X-AccessGrid-Timestamp", timestamp)
+	req.Header.Set("X-ACCT-ID", c.AccountID)
+	req.Header.Set("User-Agent", fmt.Sprintf("accessgrid.go @ v%s", version))
 
-	// Sign the request
-	signature, err := c.signRequest(method, path, timestamp, reqBody)
+	// Generate signature
+	signature, err := c.signRequest(reqBody)
 	if err != nil {
 		return fmt.Errorf("error signing request: %w", err)
 	}
-	req.Header.Set("X-AccessGrid-Signature", signature)
+	req.Header.Set("X-PAYLOAD-SIG", signature)
 
 	// Send the request
 	resp, err := c.HTTPClient.Do(req)
@@ -132,22 +132,24 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 	return nil
 }
 
-// signRequest generates an HMAC-SHA256 signature for the request
-func (c *Client) signRequest(method, path, timestamp string, body []byte) (string, error) {
-	// Create the string to sign
-	stringToSign := method + path + timestamp
-	if body != nil {
-		stringToSign += string(body)
+// signRequest generates a signature matching the Python SDK implementation
+func (c *Client) signRequest(payload []byte) (string, error) {
+	var payloadStr string
+	if payload != nil {
+		payloadStr = string(payload)
+	} else {
+		payloadStr = "{}"
 	}
 
-	// Create HMAC-SHA256 signer using the secret key
+	// Base64 encode the payload
+	encodedPayload := base64.StdEncoding.EncodeToString([]byte(payloadStr))
+
+	// Create HMAC using the shared secret as the key and the base64 encoded payload as the message
 	h := hmac.New(sha256.New, []byte(c.SecretKey))
-	_, err := h.Write([]byte(stringToSign))
+	_, err := h.Write([]byte(encodedPayload))
 	if err != nil {
 		return "", err
 	}
 
-	// Get the signature and encode it as base64
-	signature := base64.StdEncoding.EncodeToString(h.Sum(nil))
-	return signature, nil
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
