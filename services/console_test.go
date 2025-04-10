@@ -17,7 +17,7 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 		w.WriteHeader(http.StatusOK)
 
 		switch r.URL.Path {
-		case "/templates":
+		case "/v1/console/card-templates":
 			if r.Method == http.MethodPost {
 				// Create Template
 				w.Write([]byte(`{
@@ -26,7 +26,6 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"platform": "apple",
 					"use_case": "employee_badge",
 					"protocol": "desfire",
-					"allow_on_multiple_devices": true,
 					"watch_count": 2,
 					"iphone_count": 3
 				}`))
@@ -41,15 +40,14 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					}
 				]`))
 			}
-		case "/templates/0xd3adb00b5":
+		case "/v1/console/card-templates/0xd3adb00b5":
 			if r.Method == http.MethodPut {
 				// Update Template
 				w.Write([]byte(`{
 					"id": "0xd3adb00b5",
 					"name": "Updated Employee NFC key",
 					"platform": "apple",
-					"protocol": "desfire",
-					"allow_on_multiple_devices": true
+					"protocol": "desfire"
 				}`))
 			} else if r.Method == http.MethodGet {
 				// Read Template
@@ -58,7 +56,6 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"name": "Employee NFC key",
 					"platform": "apple",
 					"protocol": "desfire",
-					"allow_on_multiple_devices": true,
 					"watch_count": 2,
 					"iphone_count": 3
 				}`))
@@ -66,7 +63,7 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 				// Delete Template
 				w.Write([]byte(`{}`))
 			}
-		case "/templates/0xd3adb00b5/events":
+		case "/v1/console/card-templates/0xd3adb00b5/logs":
 			// Event Log
 			w.Write([]byte(`[
 				{
@@ -111,7 +108,6 @@ func TestConsoleService_CreateTemplate(t *testing.T) {
 		Platform:            "apple",
 		UseCase:             "employee_badge",
 		Protocol:            "desfire",
-		AllowOnMultipleDevices: true,
 		WatchCount:          2,
 		IPhoneCount:         3,
 		Design:              design,
@@ -148,7 +144,6 @@ func TestConsoleService_UpdateTemplate(t *testing.T) {
 	params := models.UpdateTemplateParams{
 		CardTemplateID:       "0xd3adb00b5",
 		Name:                "Updated Employee NFC key",
-		AllowOnMultipleDevices: true,
 		WatchCount:          2,
 		IPhoneCount:         3,
 		SupportInfo:         &supportInfo,

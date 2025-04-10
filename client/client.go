@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	baseURL        = "https://api.accessgrid.com/v1"
+	baseURL        = "https://api.accessgrid.com"
 	defaultTimeout = 30 * time.Second
 	version        = "0.1.0"
 )
@@ -132,7 +132,8 @@ func (c *Client) Request(ctx context.Context, method, path string, body interfac
 	// Check for API errors
 	if resp.StatusCode >= 400 {
 		var apiErrorResp struct {
-			Error string `json:"error"`
+			Message   string `json:"message"`
+			Error     string `json:"error"`
 			RequestID string `json:"request_id"`
 		}
 		
@@ -145,7 +146,15 @@ func (c *Client) Request(ctx context.Context, method, path string, body interfac
 		if err := json.Unmarshal(respBody, &apiErrorResp); err != nil {
 			apiError.Message = string(respBody)
 		} else {
-			apiError.Message = apiErrorResp.Error
+			// Prefer message over error field
+			if apiErrorResp.Message != "" {
+				apiError.Message = apiErrorResp.Message
+			} else if apiErrorResp.Error != "" {
+				apiError.Message = apiErrorResp.Error
+			} else {
+				apiError.Message = string(respBody)
+			}
+			
 			if apiErrorResp.RequestID != "" {
 				apiError.RequestID = apiErrorResp.RequestID
 			}

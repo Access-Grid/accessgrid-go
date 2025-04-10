@@ -24,7 +24,7 @@ func NewConsoleService(client *client.Client) *ConsoleService {
 // CreateTemplate creates a new card template
 func (s *ConsoleService) CreateTemplate(ctx context.Context, params models.CreateTemplateParams) (*models.Template, error) {
 	var template models.Template
-	err := s.client.Request(ctx, http.MethodPost, "/templates", params, &template)
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/card-templates", params, &template)
 	if err != nil {
 		return nil, fmt.Errorf("error creating template: %w", err)
 	}
@@ -34,7 +34,7 @@ func (s *ConsoleService) CreateTemplate(ctx context.Context, params models.Creat
 // UpdateTemplate updates an existing card template
 func (s *ConsoleService) UpdateTemplate(ctx context.Context, params models.UpdateTemplateParams) (*models.Template, error) {
 	var template models.Template
-	path := fmt.Sprintf("/templates/%s", url.PathEscape(params.CardTemplateID))
+	path := fmt.Sprintf("/v1/console/card-templates/%s", url.PathEscape(params.CardTemplateID))
 	err := s.client.Request(ctx, http.MethodPut, path, params, &template)
 	if err != nil {
 		return nil, fmt.Errorf("error updating template: %w", err)
@@ -45,7 +45,7 @@ func (s *ConsoleService) UpdateTemplate(ctx context.Context, params models.Updat
 // ReadTemplate retrieves a card template by ID
 func (s *ConsoleService) ReadTemplate(ctx context.Context, templateID string) (*models.Template, error) {
 	var template models.Template
-	path := fmt.Sprintf("/templates/%s", url.PathEscape(templateID))
+	path := fmt.Sprintf("/v1/console/card-templates/%s", url.PathEscape(templateID))
 	err := s.client.Request(ctx, http.MethodGet, path, nil, &template)
 	if err != nil {
 		return nil, fmt.Errorf("error reading template: %w", err)
@@ -56,7 +56,7 @@ func (s *ConsoleService) ReadTemplate(ctx context.Context, templateID string) (*
 // ListTemplates retrieves all card templates
 func (s *ConsoleService) ListTemplates(ctx context.Context) ([]models.Template, error) {
 	var templates []models.Template
-	err := s.client.Request(ctx, http.MethodGet, "/templates", nil, &templates)
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/card-templates", nil, &templates)
 	if err != nil {
 		return nil, fmt.Errorf("error listing templates: %w", err)
 	}
@@ -65,7 +65,7 @@ func (s *ConsoleService) ListTemplates(ctx context.Context) ([]models.Template, 
 
 // DeleteTemplate deletes a card template
 func (s *ConsoleService) DeleteTemplate(ctx context.Context, templateID string) error {
-	path := fmt.Sprintf("/templates/%s", url.PathEscape(templateID))
+	path := fmt.Sprintf("/v1/console/card-templates/%s", url.PathEscape(templateID))
 	err := s.client.Request(ctx, http.MethodDelete, path, nil, nil)
 	if err != nil {
 		return fmt.Errorf("error deleting template: %w", err)
@@ -94,7 +94,7 @@ func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filter
 	
 	// Build the URL properly using url.URL
 	u := url.URL{
-		Path: fmt.Sprintf("/templates/%s/events", url.PathEscape(templateID)),
+		Path: fmt.Sprintf("/v1/console/card-templates/%s/logs", url.PathEscape(templateID)),
 	}
 	
 	if len(query) > 0 {

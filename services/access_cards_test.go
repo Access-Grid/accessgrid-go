@@ -17,7 +17,7 @@ func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
 		w.WriteHeader(http.StatusOK)
 
 		switch r.URL.Path {
-		case "/cards":
+		case "/v1/key-cards":
 			if r.Method == http.MethodPost {
 				// Provision
 				w.Write([]byte(`{
@@ -25,21 +25,23 @@ func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
 					"card_template_id": "0xd3adb00b5",
 					"full_name": "Employee name",
 					"state": "active",
-					"url": "https://accessgrid.com/install/0xc4rd1d"
+					"install_url": "https://accessgrid.com/install/0xc4rd1d"
 				}`))
 			} else if r.Method == http.MethodGet {
 				// List
-				w.Write([]byte(`[
-					{
-						"id": "0xc4rd1d",
-						"card_template_id": "0xd3adb00b5",
-						"full_name": "Employee name",
-						"state": "active"
-					}
-				]`))
+				w.Write([]byte(`{
+					"keys": [
+						{
+							"id": "0xc4rd1d",
+							"card_template_id": "0xd3adb00b5",
+							"full_name": "Employee name",
+							"state": "active"
+						}
+					]
+				}`))
 			}
-		case "/cards/0xc4rd1d":
-			if r.Method == http.MethodPut {
+		case "/v1/key-cards/0xc4rd1d":
+			if r.Method == http.MethodPatch {
 				// Update
 				w.Write([]byte(`{
 					"id": "0xc4rd1d",
@@ -47,18 +49,18 @@ func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
 					"full_name": "Updated Employee Name",
 					"state": "active"
 				}`))
-			} else if r.Method == http.MethodDelete {
-				// Delete
-				w.Write([]byte(`{}`))
 			}
-		case "/cards/0xc4rd1d/suspend":
+		case "/v1/key-cards/0xc4rd1d/suspend":
 			// Suspend
 			w.Write([]byte(`{}`))
-		case "/cards/0xc4rd1d/resume":
+		case "/v1/key-cards/0xc4rd1d/resume":
 			// Resume
 			w.Write([]byte(`{}`))
-		case "/cards/0xc4rd1d/unlink":
+		case "/v1/key-cards/0xc4rd1d/unlink":
 			// Unlink
+			w.Write([]byte(`{}`))
+		case "/v1/key-cards/0xc4rd1d/delete":
+			// Delete
 			w.Write([]byte(`{}`))
 		}
 	}))
@@ -79,8 +81,7 @@ func TestAccessCardsService_Provision(t *testing.T) {
 	params := models.ProvisionParams{
 		CardTemplateID:         "0xd3adb00b5",
 		EmployeeID:             "123456789",
-		TagID:                  "DDEADB33FB00B5",
-		AllowOnMultipleDevices: true,
+		CardNumber:             "12345",
 		FullName:              "Employee name",
 		Email:                 "employee@example.com",
 		PhoneNumber:           "+19547212241",

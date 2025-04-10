@@ -7,8 +7,8 @@ type Card struct {
 	ID                    string    `json:"id"`
 	CardTemplateID        string    `json:"card_template_id"`
 	EmployeeID            string    `json:"employee_id"`
-	TagID                 string    `json:"tag_id"`
-	AllowOnMultipleDevices bool      `json:"allow_on_multiple_devices"`
+	CardNumber            string    `json:"card_number"`
+	SiteCode              string    `json:"site_code,omitempty"`
 	FullName              string    `json:"full_name"`
 	Email                 string    `json:"email"`
 	PhoneNumber           string    `json:"phone_number"`
@@ -17,7 +17,7 @@ type Card struct {
 	ExpirationDate        time.Time `json:"expiration_date"`
 	EmployeePhoto         string    `json:"employee_photo"`
 	State                 string    `json:"state"`
-	URL                   string    `json:"url"`
+	URL                   string    `json:"install_url"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`
 }
@@ -26,12 +26,13 @@ type Card struct {
 type ProvisionParams struct {
 	CardTemplateID          string    `json:"card_template_id"`
 	EmployeeID              string    `json:"employee_id"`
-	TagID                   string    `json:"tag_id"`
-	AllowOnMultipleDevices  bool      `json:"allow_on_multiple_devices"`
+	CardNumber              string    `json:"card_number"`
+	SiteCode                string    `json:"site_code,omitempty"`
 	FullName                string    `json:"full_name"`
 	Email                   string    `json:"email"`
 	PhoneNumber             string    `json:"phone_number"`
 	Classification          string    `json:"classification"`
+	Title                   string    `json:"title,omitempty"`
 	StartDate               time.Time `json:"start_date"`
 	ExpirationDate          time.Time `json:"expiration_date"`
 	EmployeePhoto           string    `json:"employee_photo"`
@@ -51,10 +52,11 @@ type UpdateParams struct {
 
 // ListKeysParams defines parameters for filtering cards
 type ListKeysParams struct {
-	TemplateID string `json:"template_id,omitempty"`
-	State      string `json:"state,omitempty"`
-	EmployeeID string `json:"employee_id,omitempty"`
-	TagID      string `json:"tag_id,omitempty"`
+	TemplateID  string `json:"template_id,omitempty"`
+	State       string `json:"state,omitempty"`
+	EmployeeID  string `json:"employee_id,omitempty"`
+	CardNumber  string `json:"card_number,omitempty"`
+	SiteCode    string `json:"site_code,omitempty"`
 }
 
 // Template represents a card template
@@ -64,7 +66,6 @@ type Template struct {
 	Platform              string       `json:"platform"`
 	UseCase               string       `json:"use_case"`
 	Protocol              string       `json:"protocol"`
-	AllowOnMultipleDevices bool         `json:"allow_on_multiple_devices"`
 	WatchCount            int          `json:"watch_count"`
 	IPhoneCount           int          `json:"iphone_count"`
 	Design                TemplateDesign `json:"design"`
@@ -98,7 +99,6 @@ type CreateTemplateParams struct {
 	Platform              string        `json:"platform"`
 	UseCase               string        `json:"use_case"`
 	Protocol              string        `json:"protocol"`
-	AllowOnMultipleDevices bool          `json:"allow_on_multiple_devices"`
 	WatchCount            int           `json:"watch_count"`
 	IPhoneCount           int           `json:"iphone_count"`
 	Design                TemplateDesign `json:"design"`
@@ -109,7 +109,6 @@ type CreateTemplateParams struct {
 type UpdateTemplateParams struct {
 	CardTemplateID         string       `json:"card_template_id"`
 	Name                   string       `json:"name,omitempty"`
-	AllowOnMultipleDevices bool         `json:"allow_on_multiple_devices,omitempty"`
 	WatchCount             int          `json:"watch_count,omitempty"`
 	IPhoneCount            int          `json:"iphone_count,omitempty"`
 	Design                 *TemplateDesign `json:"design,omitempty"`
