@@ -17,7 +17,7 @@ type Client struct {
 }
 
 // NewClient creates a new AccessGrid API client
-func NewClient(accountID, secretKey string, options ...client.ClientOption) (*Client, error) {
+func NewClient(accountID, secretKey string, options ...client.Option) (*Client, error) {
 	c, err := client.NewClient(accountID, secretKey, options...)
 	if err != nil {
 		return nil, err
@@ -31,12 +31,12 @@ func NewClient(accountID, secretKey string, options ...client.ClientOption) (*Cl
 }
 
 // WithBaseURL sets a custom base URL for the client
-func WithBaseURL(url string) client.ClientOption {
+func WithBaseURL(url string) client.Option {
 	return client.WithBaseURL(url)
 }
 
 // WithHTTPClient sets a custom HTTP client
-func WithHTTPClient(httpClient *http.Client) client.ClientOption {
+func WithHTTPClient(httpClient *http.Client) client.Option {
 	return client.WithHTTPClient(httpClient)
 }
 

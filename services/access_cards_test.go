@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/access_grid/accessgrid-go/client"
 	"github.com/access_grid/accessgrid-go/models"
@@ -15,7 +17,7 @@ func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
 		w.WriteHeader(http.StatusOK)
 
 		switch r.URL.Path {
-		case "/cards":
+		case "/v1/key-cards":
 			if r.Method == http.MethodPost {
 				// Provision
 				w.Write([]byte(`{
@@ -23,21 +25,23 @@ func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
 					"card_template_id": "0xd3adb00b5",
 					"full_name": "Employee name",
 					"state": "active",
-					"url": "https://accessgrid.com/install/0xc4rd1d"
+					"install_url": "https://accessgrid.com/install/0xc4rd1d"
 				}`))
 			} else if r.Method == http.MethodGet {
 				// List
-				w.Write([]byte(`[
-					{
-						"id": "0xc4rd1d",
-						"card_template_id": "0xd3adb00b5",
-						"full_name": "Employee name",
-						"state": "active"
-					}
-				]`))
+				w.Write([]byte(`{
+					"keys": [
+						{
+							"id": "0xc4rd1d",
+							"card_template_id": "0xd3adb00b5",
+							"full_name": "Employee name",
+							"state": "active"
+						}
+					]
+				}`))
 			}
-		case "/cards/0xc4rd1d":
-			if r.Method == http.MethodPut {
+		case "/v1/key-cards/0xc4rd1d":
+			if r.Method == http.MethodPatch {
 				// Update
 				w.Write([]byte(`{
 					"id": "0xc4rd1d",
@@ -45,18 +49,18 @@ func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
 					"full_name": "Updated Employee Name",
 					"state": "active"
 				}`))
-			} else if r.Method == http.MethodDelete {
-				// Delete
-				w.Write([]byte(`{}`))
 			}
-		case "/cards/0xc4rd1d/suspend":
+		case "/v1/key-cards/0xc4rd1d/suspend":
 			// Suspend
 			w.Write([]byte(`{}`))
-		case "/cards/0xc4rd1d/resume":
+		case "/v1/key-cards/0xc4rd1d/resume":
 			// Resume
 			w.Write([]byte(`{}`))
-		case "/cards/0xc4rd1d/unlink":
+		case "/v1/key-cards/0xc4rd1d/unlink":
 			// Unlink
+			w.Write([]byte(`{}`))
+		case "/v1/key-cards/0xc4rd1d/delete":
+			// Delete
 			w.Write([]byte(`{}`))
 		}
 	}))
@@ -71,20 +75,23 @@ func TestAccessCardsService_Provision(t *testing.T) {
 	server, service := setupAccessCardsTestServer()
 	defer server.Close()
 
+	startDate, _ := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
+	expDate := time.Now().AddDate(1, 0, 0) // 1 year from today
+
 	params := models.ProvisionParams{
 		CardTemplateID:         "0xd3adb00b5",
 		EmployeeID:             "123456789",
-		TagID:                  "DDEADB33FB00B5",
-		AllowOnMultipleDevices: true,
+		CardNumber:             "12345",
 		FullName:              "Employee name",
 		Email:                 "employee@example.com",
 		PhoneNumber:           "+19547212241",
 		Classification:        "full_time",
-		StartDate:            "2023-01-01T00:00:00Z",
-		ExpirationDate:       "2025-01-01T00:00:00Z",
+		StartDate:            startDate,
+		ExpirationDate:       expDate,
 	}
 
-	card, err := service.Provision(params)
+	ctx := context.Background()
+	card, err := service.Provision(ctx, params)
 	if err != nil {
 		t.Fatalf("Provision() error = %v", err)
 	}
@@ -114,7 +121,8 @@ func TestAccessCardsService_Update(t *testing.T) {
 		Classification: "contractor",
 	}
 
-	card, err := service.Update(params)
+	ctx := context.Background()
+	card, err := service.Update(ctx, params)
 	if err != nil {
 		t.Fatalf("Update() error = %v", err)
 	}
@@ -135,7 +143,8 @@ func TestAccessCardsService_List(t *testing.T) {
 		TemplateID: "0xd3adb00b5",
 	}
 
-	cards, err := service.List(params)
+	ctx := context.Background()
+	cards, err := service.List(ctx, params)
 	if err != nil {
 		t.Fatalf("List() error = %v", err)
 	}
@@ -153,26 +162,28 @@ func TestAccessCardsService_CardStateOperations(t *testing.T) {
 	server, service := setupAccessCardsTestServer()
 	defer server.Close()
 
+	ctx := context.Background()
+
 	// Test Suspend
-	err := service.Suspend("0xc4rd1d")
+	err := service.Suspend(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Suspend() error = %v", err)
 	}
 
 	// Test Resume
-	err = service.Resume("0xc4rd1d")
+	err = service.Resume(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Resume() error = %v", err)
 	}
 
 	// Test Unlink
-	err = service.Unlink("0xc4rd1d")
+	err = service.Unlink(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Unlink() error = %v", err)
 	}
 
 	// Test Delete
-	err = service.Delete("0xc4rd1d")
+	err = service.Delete(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Delete() error = %v", err)
 	}

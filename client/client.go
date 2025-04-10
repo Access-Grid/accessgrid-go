@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -14,10 +15,27 @@ import (
 )
 
 const (
-	baseURL        = "https://api.accessgrid.com/v1"
+	baseURL        = "https://api.accessgrid.com"
 	defaultTimeout = 30 * time.Second
 	version        = "0.1.0"
 )
+
+// APIError represents an error returned by the AccessGrid API
+type APIError struct {
+	StatusCode int
+	Message    string
+	RequestID  string
+	RawBody    string
+}
+
+// Error implements the error interface
+func (e *APIError) Error() string {
+	msg := fmt.Sprintf("accessgrid-go v%s: API error (status %d): %s", version, e.StatusCode, e.Message)
+	if e.RequestID != "" {
+		msg += fmt.Sprintf(" (request ID: %s)", e.RequestID)
+	}
+	return msg
+}
 
 // Client is the main AccessGrid API client
 type Client struct {
@@ -27,25 +45,25 @@ type Client struct {
 	HTTPClient *http.Client
 }
 
-// ClientOption allows for customizing the client
-type ClientOption func(*Client)
+// Option allows for customizing the client
+type Option func(*Client)
 
 // WithBaseURL sets a custom base URL for the client
-func WithBaseURL(url string) ClientOption {
+func WithBaseURL(url string) Option {
 	return func(c *Client) {
 		c.BaseURL = url
 	}
 }
 
 // WithHTTPClient sets a custom HTTP client
-func WithHTTPClient(httpClient *http.Client) ClientOption {
+func WithHTTPClient(httpClient *http.Client) Option {
 	return func(c *Client) {
 		c.HTTPClient = httpClient
 	}
 }
 
 // NewClient creates a new AccessGrid API client
-func NewClient(accountID, secretKey string, options ...ClientOption) (*Client, error) {
+func NewClient(accountID, secretKey string, options ...Option) (*Client, error) {
 	if accountID == "" {
 		return nil, errors.New("accountID is required")
 	}
@@ -69,7 +87,7 @@ func NewClient(accountID, secretKey string, options ...ClientOption) (*Client, e
 }
 
 // Request makes an authenticated API request
-func (c *Client) Request(method, path string, body interface{}, result interface{}) error {
+func (c *Client) Request(ctx context.Context, method, path string, body interface{}, result interface{}) error {
 	url := fmt.Sprintf("%s%s", c.BaseURL, path)
 
 	var reqBody []byte
@@ -81,7 +99,7 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 		}
 	}
 
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
@@ -113,13 +131,36 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 
 	// Check for API errors
 	if resp.StatusCode >= 400 {
-		var apiError struct {
-			Error string `json:"error"`
+		var apiErrorResp struct {
+			Message   string `json:"message"`
+			Error     string `json:"error"`
+			RequestID string `json:"request_id"`
 		}
-		if err := json.Unmarshal(respBody, &apiError); err != nil {
-			return fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(respBody))
+		
+		apiError := &APIError{
+			StatusCode: resp.StatusCode,
+			RawBody:    string(respBody),
+			RequestID:  resp.Header.Get("X-Request-ID"), // Extract request ID from header if available
 		}
-		return fmt.Errorf("API error (status %d): %s", resp.StatusCode, apiError.Error)
+		
+		if err := json.Unmarshal(respBody, &apiErrorResp); err != nil {
+			apiError.Message = string(respBody)
+		} else {
+			// Prefer message over error field
+			if apiErrorResp.Message != "" {
+				apiError.Message = apiErrorResp.Message
+			} else if apiErrorResp.Error != "" {
+				apiError.Message = apiErrorResp.Error
+			} else {
+				apiError.Message = string(respBody)
+			}
+			
+			if apiErrorResp.RequestID != "" {
+				apiError.RequestID = apiErrorResp.RequestID
+			}
+		}
+		
+		return apiError
 	}
 
 	// Parse response into result

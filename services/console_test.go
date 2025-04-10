@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/access_grid/accessgrid-go/client"
 	"github.com/access_grid/accessgrid-go/models"
@@ -15,7 +17,7 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 		w.WriteHeader(http.StatusOK)
 
 		switch r.URL.Path {
-		case "/templates":
+		case "/v1/console/card-templates":
 			if r.Method == http.MethodPost {
 				// Create Template
 				w.Write([]byte(`{
@@ -24,7 +26,6 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"platform": "apple",
 					"use_case": "employee_badge",
 					"protocol": "desfire",
-					"allow_on_multiple_devices": true,
 					"watch_count": 2,
 					"iphone_count": 3
 				}`))
@@ -39,15 +40,14 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					}
 				]`))
 			}
-		case "/templates/0xd3adb00b5":
+		case "/v1/console/card-templates/0xd3adb00b5":
 			if r.Method == http.MethodPut {
 				// Update Template
 				w.Write([]byte(`{
 					"id": "0xd3adb00b5",
 					"name": "Updated Employee NFC key",
 					"platform": "apple",
-					"protocol": "desfire",
-					"allow_on_multiple_devices": true
+					"protocol": "desfire"
 				}`))
 			} else if r.Method == http.MethodGet {
 				// Read Template
@@ -56,7 +56,6 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"name": "Employee NFC key",
 					"platform": "apple",
 					"protocol": "desfire",
-					"allow_on_multiple_devices": true,
 					"watch_count": 2,
 					"iphone_count": 3
 				}`))
@@ -64,7 +63,7 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 				// Delete Template
 				w.Write([]byte(`{}`))
 			}
-		case "/templates/0xd3adb00b5/events":
+		case "/v1/console/card-templates/0xd3adb00b5/logs":
 			// Event Log
 			w.Write([]byte(`[
 				{
@@ -109,14 +108,14 @@ func TestConsoleService_CreateTemplate(t *testing.T) {
 		Platform:            "apple",
 		UseCase:             "employee_badge",
 		Protocol:            "desfire",
-		AllowOnMultipleDevices: true,
 		WatchCount:          2,
 		IPhoneCount:         3,
 		Design:              design,
 		SupportInfo:         supportInfo,
 	}
 
-	template, err := service.CreateTemplate(params)
+	ctx := context.Background()
+	template, err := service.CreateTemplate(ctx, params)
 	if err != nil {
 		t.Fatalf("CreateTemplate() error = %v", err)
 	}
@@ -145,13 +144,13 @@ func TestConsoleService_UpdateTemplate(t *testing.T) {
 	params := models.UpdateTemplateParams{
 		CardTemplateID:       "0xd3adb00b5",
 		Name:                "Updated Employee NFC key",
-		AllowOnMultipleDevices: true,
 		WatchCount:          2,
 		IPhoneCount:         3,
 		SupportInfo:         &supportInfo,
 	}
 
-	template, err := service.UpdateTemplate(params)
+	ctx := context.Background()
+	template, err := service.UpdateTemplate(ctx, params)
 	if err != nil {
 		t.Fatalf("UpdateTemplate() error = %v", err)
 	}
@@ -168,7 +167,8 @@ func TestConsoleService_ReadTemplate(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
 
-	template, err := service.ReadTemplate("0xd3adb00b5")
+	ctx := context.Background()
+	template, err := service.ReadTemplate(ctx, "0xd3adb00b5")
 	if err != nil {
 		t.Fatalf("ReadTemplate() error = %v", err)
 	}
@@ -188,7 +188,8 @@ func TestConsoleService_ListTemplates(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
 
-	templates, err := service.ListTemplates()
+	ctx := context.Background()
+	templates, err := service.ListTemplates(ctx)
 	if err != nil {
 		t.Fatalf("ListTemplates() error = %v", err)
 	}
@@ -206,7 +207,8 @@ func TestConsoleService_DeleteTemplate(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
 
-	err := service.DeleteTemplate("0xd3adb00b5")
+	ctx := context.Background()
+	err := service.DeleteTemplate(ctx, "0xd3adb00b5")
 	if err != nil {
 		t.Errorf("DeleteTemplate() error = %v", err)
 	}
@@ -216,14 +218,18 @@ func TestConsoleService_EventLog(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
 
+	startDate, _ := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
+	endDate, _ := time.Parse(time.RFC3339, "2023-01-31T23:59:59Z")
+
 	filters := models.EventLogFilters{
 		Device:    "mobile",
-		StartDate: "2023-01-01T00:00:00Z",
-		EndDate:   "2023-01-31T23:59:59Z",
+		StartDate: &startDate,
+		EndDate:   &endDate,
 		EventType: "install",
 	}
 
-	events, err := service.EventLog("0xd3adb00b5", filters)
+	ctx := context.Background()
+	events, err := service.EventLog(ctx, "0xd3adb00b5", filters)
 	if err != nil {
 		t.Fatalf("EventLog() error = %v", err)
 	}
