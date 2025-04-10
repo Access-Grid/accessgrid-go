@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/access_grid/accessgrid-go/client"
 	"github.com/access_grid/accessgrid-go/models"
@@ -20,9 +22,9 @@ func NewConsoleService(client *client.Client) *ConsoleService {
 }
 
 // CreateTemplate creates a new card template
-func (s *ConsoleService) CreateTemplate(params models.CreateTemplateParams) (*models.Template, error) {
+func (s *ConsoleService) CreateTemplate(ctx context.Context, params models.CreateTemplateParams) (*models.Template, error) {
 	var template models.Template
-	err := s.client.Request(http.MethodPost, "/templates", params, &template)
+	err := s.client.Request(ctx, http.MethodPost, "/templates", params, &template)
 	if err != nil {
 		return nil, fmt.Errorf("error creating template: %w", err)
 	}
@@ -30,10 +32,10 @@ func (s *ConsoleService) CreateTemplate(params models.CreateTemplateParams) (*mo
 }
 
 // UpdateTemplate updates an existing card template
-func (s *ConsoleService) UpdateTemplate(params models.UpdateTemplateParams) (*models.Template, error) {
+func (s *ConsoleService) UpdateTemplate(ctx context.Context, params models.UpdateTemplateParams) (*models.Template, error) {
 	var template models.Template
-	path := fmt.Sprintf("/templates/%s", params.CardTemplateID)
-	err := s.client.Request(http.MethodPut, path, params, &template)
+	path := fmt.Sprintf("/templates/%s", url.PathEscape(params.CardTemplateID))
+	err := s.client.Request(ctx, http.MethodPut, path, params, &template)
 	if err != nil {
 		return nil, fmt.Errorf("error updating template: %w", err)
 	}
@@ -41,10 +43,10 @@ func (s *ConsoleService) UpdateTemplate(params models.UpdateTemplateParams) (*mo
 }
 
 // ReadTemplate retrieves a card template by ID
-func (s *ConsoleService) ReadTemplate(templateID string) (*models.Template, error) {
+func (s *ConsoleService) ReadTemplate(ctx context.Context, templateID string) (*models.Template, error) {
 	var template models.Template
-	path := fmt.Sprintf("/templates/%s", templateID)
-	err := s.client.Request(http.MethodGet, path, nil, &template)
+	path := fmt.Sprintf("/templates/%s", url.PathEscape(templateID))
+	err := s.client.Request(ctx, http.MethodGet, path, nil, &template)
 	if err != nil {
 		return nil, fmt.Errorf("error reading template: %w", err)
 	}
@@ -52,9 +54,9 @@ func (s *ConsoleService) ReadTemplate(templateID string) (*models.Template, erro
 }
 
 // ListTemplates retrieves all card templates
-func (s *ConsoleService) ListTemplates() ([]models.Template, error) {
+func (s *ConsoleService) ListTemplates(ctx context.Context) ([]models.Template, error) {
 	var templates []models.Template
-	err := s.client.Request(http.MethodGet, "/templates", nil, &templates)
+	err := s.client.Request(ctx, http.MethodGet, "/templates", nil, &templates)
 	if err != nil {
 		return nil, fmt.Errorf("error listing templates: %w", err)
 	}
@@ -62,9 +64,9 @@ func (s *ConsoleService) ListTemplates() ([]models.Template, error) {
 }
 
 // DeleteTemplate deletes a card template
-func (s *ConsoleService) DeleteTemplate(templateID string) error {
-	path := fmt.Sprintf("/templates/%s", templateID)
-	err := s.client.Request(http.MethodDelete, path, nil, nil)
+func (s *ConsoleService) DeleteTemplate(ctx context.Context, templateID string) error {
+	path := fmt.Sprintf("/templates/%s", url.PathEscape(templateID))
+	err := s.client.Request(ctx, http.MethodDelete, path, nil, nil)
 	if err != nil {
 		return fmt.Errorf("error deleting template: %w", err)
 	}
@@ -72,7 +74,7 @@ func (s *ConsoleService) DeleteTemplate(templateID string) error {
 }
 
 // EventLog retrieves event logs for a specific template
-func (s *ConsoleService) EventLog(templateID string, filters models.EventLogFilters) ([]models.Event, error) {
+func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filters models.EventLogFilters) ([]models.Event, error) {
 	var events []models.Event
 	
 	// Build query parameters
@@ -80,22 +82,28 @@ func (s *ConsoleService) EventLog(templateID string, filters models.EventLogFilt
 	if filters.Device != "" {
 		query.Add("device", filters.Device)
 	}
-	if filters.StartDate != "" {
-		query.Add("start_date", filters.StartDate)
+	if filters.StartDate != nil {
+		query.Add("start_date", filters.StartDate.Format(time.RFC3339))
 	}
-	if filters.EndDate != "" {
-		query.Add("end_date", filters.EndDate)
+	if filters.EndDate != nil {
+		query.Add("end_date", filters.EndDate.Format(time.RFC3339))
 	}
 	if filters.EventType != "" {
 		query.Add("event_type", filters.EventType)
 	}
 	
-	path := fmt.Sprintf("/templates/%s/events", templateID)
-	if len(query) > 0 {
-		path = fmt.Sprintf("%s?%s", path, query.Encode())
+	// Build the URL properly using url.URL
+	u := url.URL{
+		Path: fmt.Sprintf("/templates/%s/events", url.PathEscape(templateID)),
 	}
 	
-	err := s.client.Request(http.MethodGet, path, nil, &events)
+	if len(query) > 0 {
+		u.RawQuery = query.Encode()
+	}
+	
+	path := u.String()
+	
+	err := s.client.Request(ctx, http.MethodGet, path, nil, &events)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching event log: %w", err)
 	}

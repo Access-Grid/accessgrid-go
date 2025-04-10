@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -77,14 +78,11 @@ func TestClientRequest(t *testing.T) {
 		if r.Header.Get("Content-Type") != "application/json" {
 			t.Errorf("Expected Content-Type header to be application/json")
 		}
-		if r.Header.Get("X-AccessGrid-Account-ID") == "" {
-			t.Errorf("Expected X-AccessGrid-Account-ID header to be set")
+		if r.Header.Get("X-ACCT-ID") == "" {
+			t.Errorf("Expected X-ACCT-ID header to be set")
 		}
-		if r.Header.Get("X-AccessGrid-Timestamp") == "" {
-			t.Errorf("Expected X-AccessGrid-Timestamp header to be set")
-		}
-		if r.Header.Get("X-AccessGrid-Signature") == "" {
-			t.Errorf("Expected X-AccessGrid-Signature header to be set")
+		if r.Header.Get("X-PAYLOAD-SIG") == "" {
+			t.Errorf("Expected X-PAYLOAD-SIG header to be set")
 		}
 
 		// Return a simple JSON response
@@ -102,7 +100,8 @@ func TestClientRequest(t *testing.T) {
 
 	// Test request
 	var response map[string]string
-	err = client.Request("GET", "/test-path", nil, &response)
+	ctx := context.Background()
+	err = client.Request(ctx, "GET", "/test-path", nil, &response)
 	if err != nil {
 		t.Fatalf("client.Request() error = %v", err)
 	}

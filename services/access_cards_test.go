@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/access_grid/accessgrid-go/client"
 	"github.com/access_grid/accessgrid-go/models"
@@ -71,6 +73,9 @@ func TestAccessCardsService_Provision(t *testing.T) {
 	server, service := setupAccessCardsTestServer()
 	defer server.Close()
 
+	startDate, _ := time.Parse(time.RFC3339, "2023-01-01T00:00:00Z")
+	expDate := time.Now().AddDate(1, 0, 0) // 1 year from today
+
 	params := models.ProvisionParams{
 		CardTemplateID:         "0xd3adb00b5",
 		EmployeeID:             "123456789",
@@ -80,11 +85,12 @@ func TestAccessCardsService_Provision(t *testing.T) {
 		Email:                 "employee@example.com",
 		PhoneNumber:           "+19547212241",
 		Classification:        "full_time",
-		StartDate:            "2023-01-01T00:00:00Z",
-		ExpirationDate:       "2025-01-01T00:00:00Z",
+		StartDate:            startDate,
+		ExpirationDate:       expDate,
 	}
 
-	card, err := service.Provision(params)
+	ctx := context.Background()
+	card, err := service.Provision(ctx, params)
 	if err != nil {
 		t.Fatalf("Provision() error = %v", err)
 	}
@@ -114,7 +120,8 @@ func TestAccessCardsService_Update(t *testing.T) {
 		Classification: "contractor",
 	}
 
-	card, err := service.Update(params)
+	ctx := context.Background()
+	card, err := service.Update(ctx, params)
 	if err != nil {
 		t.Fatalf("Update() error = %v", err)
 	}
@@ -135,7 +142,8 @@ func TestAccessCardsService_List(t *testing.T) {
 		TemplateID: "0xd3adb00b5",
 	}
 
-	cards, err := service.List(params)
+	ctx := context.Background()
+	cards, err := service.List(ctx, params)
 	if err != nil {
 		t.Fatalf("List() error = %v", err)
 	}
@@ -153,26 +161,28 @@ func TestAccessCardsService_CardStateOperations(t *testing.T) {
 	server, service := setupAccessCardsTestServer()
 	defer server.Close()
 
+	ctx := context.Background()
+
 	// Test Suspend
-	err := service.Suspend("0xc4rd1d")
+	err := service.Suspend(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Suspend() error = %v", err)
 	}
 
 	// Test Resume
-	err = service.Resume("0xc4rd1d")
+	err = service.Resume(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Resume() error = %v", err)
 	}
 
 	// Test Unlink
-	err = service.Unlink("0xc4rd1d")
+	err = service.Unlink(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Unlink() error = %v", err)
 	}
 
 	// Test Delete
-	err = service.Delete("0xc4rd1d")
+	err = service.Delete(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Delete() error = %v", err)
 	}

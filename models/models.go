@@ -24,29 +24,29 @@ type Card struct {
 
 // ProvisionParams defines parameters for provisioning a new card
 type ProvisionParams struct {
-	CardTemplateID          string `json:"card_template_id"`
-	EmployeeID              string `json:"employee_id"`
-	TagID                   string `json:"tag_id"`
-	AllowOnMultipleDevices  bool   `json:"allow_on_multiple_devices"`
-	FullName                string `json:"full_name"`
-	Email                   string `json:"email"`
-	PhoneNumber             string `json:"phone_number"`
-	Classification          string `json:"classification"`
-	StartDate               string `json:"start_date"`
-	ExpirationDate          string `json:"expiration_date"`
-	EmployeePhoto           string `json:"employee_photo"`
+	CardTemplateID          string    `json:"card_template_id"`
+	EmployeeID              string    `json:"employee_id"`
+	TagID                   string    `json:"tag_id"`
+	AllowOnMultipleDevices  bool      `json:"allow_on_multiple_devices"`
+	FullName                string    `json:"full_name"`
+	Email                   string    `json:"email"`
+	PhoneNumber             string    `json:"phone_number"`
+	Classification          string    `json:"classification"`
+	StartDate               time.Time `json:"start_date"`
+	ExpirationDate          time.Time `json:"expiration_date"`
+	EmployeePhoto           string    `json:"employee_photo"`
 }
 
 // UpdateParams defines parameters for updating an existing card
 type UpdateParams struct {
-	CardID          string `json:"card_id"`
-	EmployeeID      string `json:"employee_id,omitempty"`
-	FullName        string `json:"full_name,omitempty"`
-	Email           string `json:"email,omitempty"`
-	PhoneNumber     string `json:"phone_number,omitempty"`
-	Classification  string `json:"classification,omitempty"`
-	ExpirationDate  string `json:"expiration_date,omitempty"`
-	EmployeePhoto   string `json:"employee_photo,omitempty"`
+	CardID          string     `json:"card_id"`
+	EmployeeID      string     `json:"employee_id,omitempty"`
+	FullName        string     `json:"full_name,omitempty"`
+	Email           string     `json:"email,omitempty"`
+	PhoneNumber     string     `json:"phone_number,omitempty"`
+	Classification  string     `json:"classification,omitempty"`
+	ExpirationDate  *time.Time `json:"expiration_date,omitempty"`
+	EmployeePhoto   string     `json:"employee_photo,omitempty"`
 }
 
 // ListKeysParams defines parameters for filtering cards
@@ -118,10 +118,10 @@ type UpdateTemplateParams struct {
 
 // EventLogFilters defines parameters for filtering event logs
 type EventLogFilters struct {
-	Device    string `json:"device,omitempty"`
-	StartDate string `json:"start_date,omitempty"`
-	EndDate   string `json:"end_date,omitempty"`
-	EventType string `json:"event_type,omitempty"`
+	Device    string     `json:"device,omitempty"`
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
+	EventType string     `json:"event_type,omitempty"`
 }
 
 // Event represents an event in the event log
