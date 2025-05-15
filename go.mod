@@ -1,3 +1,3 @@
-module github.com/access_grid/accessgrid-go
+module github.com/Access-Grid/accessgrid-go
 
 go 1.23.5

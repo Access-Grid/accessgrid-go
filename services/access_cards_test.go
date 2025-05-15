@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/access_grid/accessgrid-go/client"
-	"github.com/access_grid/accessgrid-go/models"
+	"github.com/Access-Grid/accessgrid-go/client"
+	"github.com/Access-Grid/accessgrid-go/models"
 )
 
 func setupAccessCardsTestServer() (*httptest.Server, *AccessCardsService) {
@@ -79,15 +79,15 @@ func TestAccessCardsService_Provision(t *testing.T) {
 	expDate := time.Now().AddDate(1, 0, 0) // 1 year from today
 
 	params := models.ProvisionParams{
-		CardTemplateID:         "0xd3adb00b5",
-		EmployeeID:             "123456789",
-		CardNumber:             "12345",
-		FullName:              "Employee name",
-		Email:                 "employee@example.com",
-		PhoneNumber:           "+19547212241",
-		Classification:        "full_time",
-		StartDate:            startDate,
-		ExpirationDate:       expDate,
+		CardTemplateID: "0xd3adb00b5",
+		EmployeeID:     "123456789",
+		CardNumber:     "12345",
+		FullName:       "Employee name",
+		Email:          "employee@example.com",
+		PhoneNumber:    "+19547212241",
+		Classification: "full_time",
+		StartDate:      startDate,
+		ExpirationDate: expDate,
 	}
 
 	ctx := context.Background()

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/access_grid/accessgrid-go/client"
-	"github.com/access_grid/accessgrid-go/models"
+	"github.com/Access-Grid/accessgrid-go/client"
+	"github.com/Access-Grid/accessgrid-go/models"
 )
 
 func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
@@ -91,27 +91,27 @@ func TestConsoleService_CreateTemplate(t *testing.T) {
 
 	design := models.TemplateDesign{
 		BackgroundColor:     "#FFFFFF",
-		LabelColor:         "#000000",
+		LabelColor:          "#000000",
 		LabelSecondaryColor: "#333333",
 	}
 
 	supportInfo := models.SupportInfo{
-		SupportURL:           "https://help.example.com",
-		SupportPhoneNumber:   "+1-555-123-4567",
-		SupportEmail:         "support@example.com",
-		PrivacyPolicyURL:     "https://example.com/privacy",
+		SupportURL:            "https://help.example.com",
+		SupportPhoneNumber:    "+1-555-123-4567",
+		SupportEmail:          "support@example.com",
+		PrivacyPolicyURL:      "https://example.com/privacy",
 		TermsAndConditionsURL: "https://example.com/terms",
 	}
 
 	params := models.CreateTemplateParams{
-		Name:                 "Employee NFC key",
-		Platform:            "apple",
-		UseCase:             "employee_badge",
-		Protocol:            "desfire",
-		WatchCount:          2,
-		IPhoneCount:         3,
-		Design:              design,
-		SupportInfo:         supportInfo,
+		Name:        "Employee NFC key",
+		Platform:    "apple",
+		UseCase:     "employee_badge",
+		Protocol:    "desfire",
+		WatchCount:  2,
+		IPhoneCount: 3,
+		Design:      design,
+		SupportInfo: supportInfo,
 	}
 
 	ctx := context.Background()
@@ -136,17 +136,17 @@ func TestConsoleService_UpdateTemplate(t *testing.T) {
 	defer server.Close()
 
 	supportInfo := models.SupportInfo{
-		SupportURL:           "https://help.example.com",
-		SupportPhoneNumber:   "+1-555-123-4567",
-		SupportEmail:         "support@example.com",
+		SupportURL:         "https://help.example.com",
+		SupportPhoneNumber: "+1-555-123-4567",
+		SupportEmail:       "support@example.com",
 	}
 
 	params := models.UpdateTemplateParams{
-		CardTemplateID:       "0xd3adb00b5",
-		Name:                "Updated Employee NFC key",
-		WatchCount:          2,
-		IPhoneCount:         3,
-		SupportInfo:         &supportInfo,
+		CardTemplateID: "0xd3adb00b5",
+		Name:           "Updated Employee NFC key",
+		WatchCount:     2,
+		IPhoneCount:    3,
+		SupportInfo:    &supportInfo,
 	}
 
 	ctx := context.Background()

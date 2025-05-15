@@ -3,10 +3,10 @@ package accessgrid
 
 import (
 	"net/http"
-	
-	"github.com/access_grid/accessgrid-go/client"
-	"github.com/access_grid/accessgrid-go/models"
-	"github.com/access_grid/accessgrid-go/services"
+
+	"github.com/Access-Grid/accessgrid-go/client"
+	"github.com/Access-Grid/accessgrid-go/models"
+	"github.com/Access-Grid/accessgrid-go/services"
 )
 
 // Client is the main entry point for the AccessGrid API
@@ -44,34 +44,34 @@ func WithHTTPClient(httpClient *http.Client) client.Option {
 type (
 	// Card represents an NFC key or access pass
 	Card = models.Card
-	
+
 	// ProvisionParams defines parameters for provisioning a new card
 	ProvisionParams = models.ProvisionParams
-	
+
 	// UpdateParams defines parameters for updating an existing card
 	UpdateParams = models.UpdateParams
-	
+
 	// ListKeysParams defines parameters for filtering cards
 	ListKeysParams = models.ListKeysParams
-	
+
 	// Template represents a card template
 	Template = models.Template
-	
+
 	// TemplateDesign represents the design elements of a card template
 	TemplateDesign = models.TemplateDesign
-	
+
 	// SupportInfo represents support information for a card template
 	SupportInfo = models.SupportInfo
-	
+
 	// CreateTemplateParams defines parameters for creating a new template
 	CreateTemplateParams = models.CreateTemplateParams
-	
+
 	// UpdateTemplateParams defines parameters for updating an existing template
 	UpdateTemplateParams = models.UpdateTemplateParams
-	
+
 	// EventLogFilters defines parameters for filtering event logs
 	EventLogFilters = models.EventLogFilters
-	
+
 	// Event represents an event in the event log
 	Event = models.Event
 )
