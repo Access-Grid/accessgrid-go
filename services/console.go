@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/access_grid/accessgrid-go/client"
-	"github.com/access_grid/accessgrid-go/models"
+	"github.com/Access-Grid/accessgrid-go/client"
+	"github.com/Access-Grid/accessgrid-go/models"
 )
 
 // ConsoleService handles operations related to the enterprise console
@@ -76,7 +76,7 @@ func (s *ConsoleService) DeleteTemplate(ctx context.Context, templateID string) 
 // EventLog retrieves event logs for a specific template
 func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filters models.EventLogFilters) ([]models.Event, error) {
 	var events []models.Event
-	
+
 	// Build query parameters
 	query := url.Values{}
 	if filters.Device != "" {
@@ -91,22 +91,22 @@ func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filter
 	if filters.EventType != "" {
 		query.Add("event_type", filters.EventType)
 	}
-	
+
 	// Build the URL properly using url.URL
 	u := url.URL{
 		Path: fmt.Sprintf("/v1/console/card-templates/%s/logs", url.PathEscape(templateID)),
 	}
-	
+
 	if len(query) > 0 {
 		u.RawQuery = query.Encode()
 	}
-	
+
 	path := u.String()
-	
+
 	err := s.client.Request(ctx, http.MethodGet, path, nil, &events)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching event log: %w", err)
 	}
-	
+
 	return events, nil
 }

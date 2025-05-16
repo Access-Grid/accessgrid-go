@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/access_grid/accessgrid-go/client"
-	"github.com/access_grid/accessgrid-go/models"
+	"github.com/Access-Grid/accessgrid-go/client"
+	"github.com/Access-Grid/accessgrid-go/models"
 )
 
 // AccessCardsService handles operations related to NFC cards

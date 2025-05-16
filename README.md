@@ -5,7 +5,7 @@ A Go SDK for interacting with the [AccessGrid.com](https://www.accessgrid.com) A
 ## Installation
 
 ```bash
-go get github.com/access_grid/accessgrid-go
+go get github.com/Access-Grid/accessgrid-go
 ```
 
 ## Quick Start
@@ -16,7 +16,7 @@ package main
 import (\n    "context"
     "fmt"
     "os"
-    "github.com/access_grid/accessgrid-go"
+    "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -45,7 +45,7 @@ import (\n    "context"
     "fmt"
     "os"
     "time"
-    "github.com/access_grid/accessgrid-go"
+    "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -93,7 +93,7 @@ import (\n    "context"
    "fmt"
    "os"
    "time"
-   "github.com/access_grid/accessgrid-go"
+   "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -134,7 +134,7 @@ package main
 import (\n    "context"
     "fmt"
     "os"
-    "github.com/access_grid/accessgrid-go"
+    "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -218,7 +218,7 @@ package main
 import (\n    "context"
    "fmt"
    "os"
-   "github.com/access_grid/accessgrid-go"
+   "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -279,7 +279,7 @@ package main
 import (\n    "context"
    "fmt"
    "os"
-   "github.com/access_grid/accessgrid-go"
+   "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -328,7 +328,7 @@ package main
 import (\n    "context"
    "fmt"
    "os"
-   "github.com/access_grid/accessgrid-go"
+   "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
@@ -365,7 +365,7 @@ import (\n    "context"
    "fmt"
    "os"
    "time"
-   "github.com/access_grid/accessgrid-go"
+   "github.com/Access-Grid/accessgrid-go"
 )
 
 func main() {
