@@ -4,74 +4,97 @@ import "time"
 
 // Card represents an NFC key or access pass
 type Card struct {
-	ID                    string    `json:"id"`
-	CardTemplateID        string    `json:"card_template_id"`
-	EmployeeID            string    `json:"employee_id"`
-	CardNumber            string    `json:"card_number"`
-	SiteCode              string    `json:"site_code,omitempty"`
-	FullName              string    `json:"full_name"`
-	Email                 string    `json:"email"`
-	PhoneNumber           string    `json:"phone_number"`
-	Classification        string    `json:"classification"`
-	StartDate             time.Time `json:"start_date"`
-	ExpirationDate        time.Time `json:"expiration_date"`
-	EmployeePhoto         string    `json:"employee_photo"`
-	State                 string    `json:"state"`
-	URL                   string    `json:"install_url"`
-	CreatedAt             time.Time `json:"created_at"`
-	UpdatedAt             time.Time `json:"updated_at"`
+	ID               string    `json:"id"`
+	CardTemplateID   string    `json:"card_template_id"`
+	EmployeeID       string    `json:"employee_id"`
+	CardNumber       string    `json:"card_number"`
+	SiteCode         string    `json:"site_code,omitempty"`
+	FullName         string    `json:"full_name"`
+	Email            string    `json:"email"`
+	PhoneNumber      string    `json:"phone_number"`
+	Classification   string    `json:"classification"`
+	StartDate        time.Time `json:"start_date"`
+	ExpirationDate   time.Time `json:"expiration_date"`
+	EmployeePhoto    string    `json:"employee_photo"`
+	State            string    `json:"state"`
+	URL              string    `json:"install_url"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	DirectInstallUrl string    `json:"direct_install_url"`
+}
+
+// CardProvisionResponse
+type CardProvisionResponse struct {
+	ID               string    `json:"id"`
+	CardTemplateID   string    `json:"card_template_id"`
+	EmployeeID       string    `json:"employee_id"`
+	CardNumber       string    `json:"card_number"`
+	SiteCode         string    `json:"site_code,omitempty"`
+	FullName         string    `json:"full_name"`
+	Email            string    `json:"email"`
+	PhoneNumber      string    `json:"phone_number"`
+	Classification   string    `json:"classification"`
+	StartDate        time.Time `json:"start_date"`
+	ExpirationDate   time.Time `json:"expiration_date"`
+	EmployeePhoto    string    `json:"employee_photo"`
+	State            string    `json:"state"`
+	URL              string    `json:"install_url"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	DirectInstallUrl string    `json:"driect_install_url"`
+	Details          []Card    `json:"details"`
 }
 
 // ProvisionParams defines parameters for provisioning a new card
 type ProvisionParams struct {
-	CardTemplateID          string    `json:"card_template_id"`
-	EmployeeID              string    `json:"employee_id"`
-	CardNumber              string    `json:"card_number"`
-	SiteCode                string    `json:"site_code,omitempty"`
-	FullName                string    `json:"full_name"`
-	Email                   string    `json:"email"`
-	PhoneNumber             string    `json:"phone_number"`
-	Classification          string    `json:"classification"`
-	Title                   string    `json:"title,omitempty"`
-	StartDate               time.Time `json:"start_date"`
-	ExpirationDate          time.Time `json:"expiration_date"`
-	EmployeePhoto           string    `json:"employee_photo"`
+	CardTemplateID string    `json:"card_template_id"`
+	EmployeeID     string    `json:"employee_id"`
+	CardNumber     string    `json:"card_number"`
+	SiteCode       string    `json:"site_code,omitempty"`
+	FullName       string    `json:"full_name"`
+	Email          string    `json:"email"`
+	PhoneNumber    string    `json:"phone_number"`
+	Classification string    `json:"classification"`
+	Title          string    `json:"title,omitempty"`
+	StartDate      time.Time `json:"start_date"`
+	ExpirationDate time.Time `json:"expiration_date"`
+	EmployeePhoto  string    `json:"employee_photo"`
 }
 
 // UpdateParams defines parameters for updating an existing card
 type UpdateParams struct {
-	CardID          string     `json:"card_id"`
-	EmployeeID      string     `json:"employee_id,omitempty"`
-	FullName        string     `json:"full_name,omitempty"`
-	Email           string     `json:"email,omitempty"`
-	PhoneNumber     string     `json:"phone_number,omitempty"`
-	Classification  string     `json:"classification,omitempty"`
-	ExpirationDate  *time.Time `json:"expiration_date,omitempty"`
-	EmployeePhoto   string     `json:"employee_photo,omitempty"`
+	CardID         string     `json:"card_id"`
+	EmployeeID     string     `json:"employee_id,omitempty"`
+	FullName       string     `json:"full_name,omitempty"`
+	Email          string     `json:"email,omitempty"`
+	PhoneNumber    string     `json:"phone_number,omitempty"`
+	Classification string     `json:"classification,omitempty"`
+	ExpirationDate *time.Time `json:"expiration_date,omitempty"`
+	EmployeePhoto  string     `json:"employee_photo,omitempty"`
 }
 
 // ListKeysParams defines parameters for filtering cards
 type ListKeysParams struct {
-	TemplateID  string `json:"template_id,omitempty"`
-	State       string `json:"state,omitempty"`
-	EmployeeID  string `json:"employee_id,omitempty"`
-	CardNumber  string `json:"card_number,omitempty"`
-	SiteCode    string `json:"site_code,omitempty"`
+	TemplateID string `json:"template_id,omitempty"`
+	State      string `json:"state,omitempty"`
+	EmployeeID string `json:"employee_id,omitempty"`
+	CardNumber string `json:"card_number,omitempty"`
+	SiteCode   string `json:"site_code,omitempty"`
 }
 
 // Template represents a card template
 type Template struct {
-	ID                    string       `json:"id"`
-	Name                  string       `json:"name"`
-	Platform              string       `json:"platform"`
-	UseCase               string       `json:"use_case"`
-	Protocol              string       `json:"protocol"`
-	WatchCount            int          `json:"watch_count"`
-	IPhoneCount           int          `json:"iphone_count"`
-	Design                TemplateDesign `json:"design"`
-	SupportInfo           SupportInfo  `json:"support_info"`
-	CreatedAt             time.Time    `json:"created_at"`
-	UpdatedAt             time.Time    `json:"updated_at"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Platform    string         `json:"platform"`
+	UseCase     string         `json:"use_case"`
+	Protocol    string         `json:"protocol"`
+	WatchCount  int            `json:"watch_count"`
+	IPhoneCount int            `json:"iphone_count"`
+	Design      TemplateDesign `json:"design"`
+	SupportInfo SupportInfo    `json:"support_info"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 // TemplateDesign represents the design elements of a card template
@@ -95,24 +118,24 @@ type SupportInfo struct {
 
 // CreateTemplateParams defines parameters for creating a new template
 type CreateTemplateParams struct {
-	Name                  string        `json:"name"`
-	Platform              string        `json:"platform"`
-	UseCase               string        `json:"use_case"`
-	Protocol              string        `json:"protocol"`
-	WatchCount            int           `json:"watch_count"`
-	IPhoneCount           int           `json:"iphone_count"`
-	Design                TemplateDesign `json:"design"`
-	SupportInfo           SupportInfo   `json:"support_info"`
+	Name        string         `json:"name"`
+	Platform    string         `json:"platform"`
+	UseCase     string         `json:"use_case"`
+	Protocol    string         `json:"protocol"`
+	WatchCount  int            `json:"watch_count"`
+	IPhoneCount int            `json:"iphone_count"`
+	Design      TemplateDesign `json:"design"`
+	SupportInfo SupportInfo    `json:"support_info"`
 }
 
 // UpdateTemplateParams defines parameters for updating an existing template
 type UpdateTemplateParams struct {
-	CardTemplateID         string       `json:"card_template_id"`
-	Name                   string       `json:"name,omitempty"`
-	WatchCount             int          `json:"watch_count,omitempty"`
-	IPhoneCount            int          `json:"iphone_count,omitempty"`
-	Design                 *TemplateDesign `json:"design,omitempty"`
-	SupportInfo            *SupportInfo `json:"support_info,omitempty"`
+	CardTemplateID string          `json:"card_template_id"`
+	Name           string          `json:"name,omitempty"`
+	WatchCount     int             `json:"watch_count,omitempty"`
+	IPhoneCount    int             `json:"iphone_count,omitempty"`
+	Design         *TemplateDesign `json:"design,omitempty"`
+	SupportInfo    *SupportInfo    `json:"support_info,omitempty"`
 }
 
 // EventLogFilters defines parameters for filtering event logs
