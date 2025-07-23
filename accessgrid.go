@@ -45,6 +45,9 @@ type (
 	// Card represents an NFC key or access pass
 	Card = models.Card
 
+	// CardProvisionResponse
+	CardProvisionResponse = models.CardProvisionResponse
+
 	// ProvisionParams defines parameters for provisioning a new card
 	ProvisionParams = models.ProvisionParams
 
