@@ -63,7 +63,6 @@ func main() {
         EmployeeID:             "123456789",
         CardNumber:             "14563",
         SiteCode:               "42",
-        AllowOnMultipleDevices: true,
         FullName:              "Employee name",
         Email:                 "employee@yourwebsite.com",
         PhoneNumber:           "+19547212241",
