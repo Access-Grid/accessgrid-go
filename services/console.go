@@ -110,3 +110,34 @@ func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filter
 
 	return events, nil
 }
+
+// ListPassTemplatePairs retrieves a paginated list of pass template pairs
+func (s *ConsoleService) ListPassTemplatePairs(ctx context.Context, params models.ListPassTemplatePairsParams) (*models.ListPassTemplatePairsResponse, error) {
+	// Build query parameters
+	query := url.Values{}
+	if params.Page > 0 {
+		query.Add("page", fmt.Sprintf("%d", params.Page))
+	}
+	if params.PerPage > 0 {
+		query.Add("per_page", fmt.Sprintf("%d", params.PerPage))
+	}
+
+	// Build the URL
+	u := url.URL{
+		Path: "/v1/console/pass-template-pairs",
+	}
+
+	if len(query) > 0 {
+		u.RawQuery = query.Encode()
+	}
+
+	path := u.String()
+
+	var response models.ListPassTemplatePairsResponse
+	err := s.client.Request(ctx, http.MethodGet, path, nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error listing pass template pairs: %w", err)
+	}
+
+	return &response, nil
+}

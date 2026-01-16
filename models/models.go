@@ -172,3 +172,39 @@ type Event struct {
 	Timestamp  time.Time `json:"timestamp"`
 	Details    string    `json:"details"`
 }
+
+// TemplateInfo represents basic template information
+type TemplateInfo struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Platform string `json:"platform"`
+}
+
+// PassTemplatePair represents a pair of iOS and Android templates
+type PassTemplatePair struct {
+	ID              string        `json:"id"`
+	Name            string        `json:"name"`
+	CreatedAt       time.Time     `json:"created_at"`
+	AndroidTemplate *TemplateInfo `json:"android_template,omitempty"`
+	IOSTemplate     *TemplateInfo `json:"ios_template,omitempty"`
+}
+
+// ListPassTemplatePairsParams defines parameters for listing pass template pairs
+type ListPassTemplatePairsParams struct {
+	Page    int `json:"page,omitempty"`
+	PerPage int `json:"per_page,omitempty"`
+}
+
+// ListPassTemplatePairsResponse represents the response from listing pass template pairs
+type ListPassTemplatePairsResponse struct {
+	PassTemplatePairs []PassTemplatePair `json:"pass_template_pairs"`
+	Pagination        Pagination         `json:"pagination"`
+}
+
+// Pagination represents pagination information
+type Pagination struct {
+	CurrentPage int `json:"current_page"`
+	PerPage     int `json:"per_page"`
+	TotalPages  int `json:"total_pages"`
+	TotalCount  int `json:"total_count"`
+}
