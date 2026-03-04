@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -243,5 +245,43 @@ func TestConsoleService_EventLog(t *testing.T) {
 	}
 	if events[0].CardID != "0xc4rd1d" {
 		t.Errorf("EventLog() events[0].CardID = %v, want %v", events[0].CardID, "0xc4rd1d")
+	}
+}
+
+func TestConsoleService_ErrorPropagation(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"message":"Resource not found"}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	_, err := service.ReadTemplate(ctx, "nonexistent-id")
+
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	// Verify the service wraps the error with context
+	if !strings.Contains(err.Error(), "error reading template") {
+		t.Errorf("expected wrapped message, got: %s", err.Error())
+	}
+
+	// Verify the underlying APIError is still accessible
+	var apiErr *client.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("expected unwrappable *client.APIError, got %T", err)
+	}
+
+	if apiErr.StatusCode != 404 {
+		t.Errorf("StatusCode = %d, want 404", apiErr.StatusCode)
+	}
+
+	if apiErr.Message != "Resource not found" {
+		t.Errorf("Message = %q, want %q", apiErr.Message, "Resource not found")
 	}
 }
