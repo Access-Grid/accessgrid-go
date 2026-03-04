@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -186,5 +188,46 @@ func TestAccessCardsService_CardStateOperations(t *testing.T) {
 	err = service.Delete(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Delete() error = %v", err)
+	}
+}
+
+func TestAccessCardsService_ErrorPropagation(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"message":"Invalid credentials"}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewAccessCardsService(c)
+
+	ctx := context.Background()
+	_, err := service.Provision(ctx, models.ProvisionParams{
+		CardTemplateID: "0xd3adb00b5",
+		FullName:       "Test",
+	})
+
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	// Verify the service wraps the error with context
+	if !strings.Contains(err.Error(), "error provisioning card") {
+		t.Errorf("expected wrapped message, got: %s", err.Error())
+	}
+
+	// Verify the underlying APIError is still accessible
+	var apiErr *client.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("expected unwrappable *client.APIError, got %T", err)
+	}
+
+	if apiErr.StatusCode != 401 {
+		t.Errorf("StatusCode = %d, want 401", apiErr.StatusCode)
+	}
+
+	if apiErr.Message != "Invalid credentials" {
+		t.Errorf("Message = %q, want %q", apiErr.Message, "Invalid credentials")
 	}
 }
