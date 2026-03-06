@@ -2,6 +2,15 @@ package models
 
 import "time"
 
+// Union is an interface representing the base type for access pass responses.
+// Both Card and UnifiedAccessPass implement this interface.
+type Union interface {
+	GetID() string
+	GetURL() string
+	GetState() string
+	isUnion()
+}
+
 // Device represents a device associated with an access pass
 type Device struct {
 	ID         string    `json:"id"`
@@ -28,7 +37,6 @@ type Card struct {
 	EmployeePhoto         string                 `json:"employee_photo"`
 	State                 string                 `json:"state"`
 	URL                   string                 `json:"install_url"`
-	InstallURL            string                 `json:"install_url"`
 	Details               interface{}            `json:"details,omitempty"`
 	FileData              string                 `json:"file_data,omitempty"`
 	DirectInstallURL      string                 `json:"direct_install_url,omitempty"`
@@ -90,7 +98,7 @@ type UpdateParams struct {
 
 // ListKeysParams defines parameters for filtering cards
 type ListKeysParams struct {
-	TemplateID string `json:"template_id,omitempty"`
+	TemplateID string `json:"card_template_id,omitempty"`
 	State      string `json:"state,omitempty"`
 	EmployeeID string `json:"employee_id,omitempty"`
 	CardNumber string `json:"card_number,omitempty"`
@@ -172,3 +180,21 @@ type Event struct {
 	Timestamp  time.Time `json:"timestamp"`
 	Details    string    `json:"details"`
 }
+
+type UnifiedAccessPass struct {
+	ID      string `json:"id"`
+	URL     string `json:"install_url"`
+	State   string `json:"state"`
+	Status  string `json:"status"`
+	Details []Card `json:"details"`
+}
+
+func (u *UnifiedAccessPass) GetID() string    { return u.ID }
+func (u *UnifiedAccessPass) GetURL() string   { return u.URL }
+func (u *UnifiedAccessPass) GetState() string { return u.State }
+func (u *UnifiedAccessPass) isUnion()         {}
+
+func (c *Card) GetID() string    { return c.ID }
+func (c *Card) GetURL() string   { return c.URL }
+func (c *Card) GetState() string { return c.State }
+func (c *Card) isUnion()         {}

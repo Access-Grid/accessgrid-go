@@ -93,9 +93,14 @@ func TestAccessCardsService_Provision(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	card, err := service.Provision(ctx, params)
+	result, err := service.Provision(ctx, params)
 	if err != nil {
 		t.Fatalf("Provision() error = %v", err)
+	}
+
+	card, ok := result.(*models.Card)
+	if !ok {
+		t.Fatalf("Provision() expected *models.Card, got %T", result)
 	}
 
 	if card.ID != "0xc4rd1d" {

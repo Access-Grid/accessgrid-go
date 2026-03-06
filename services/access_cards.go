@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -21,24 +22,24 @@ func NewAccessCardsService(client *client.Client) *AccessCardsService {
 }
 
 // Provision creates a new NFC key/card
-func (s *AccessCardsService) Provision(ctx context.Context, params models.ProvisionParams) (*models.CardProvisionResponse, error) {
-	var res models.CardProvisionResponse
-	err := s.client.Request(ctx, http.MethodPost, "/v1/key-cards", params, &res)
+func (s *AccessCardsService) Provision(ctx context.Context, params models.ProvisionParams) (models.Union, error) {
+	var raw json.RawMessage
+	err := s.client.Request(ctx, http.MethodPost, "/v1/key-cards", params, &raw)
 	if err != nil {
 		return nil, fmt.Errorf("error provisioning card: %w", err)
 	}
-	return &res, nil
+	return parseUnionResponse(raw)
 }
 
 // Get retrieves a specific NFC key/card by ID
-func (s *AccessCardsService) Get(ctx context.Context, cardID string) (*models.Card, error) {
-	var card models.Card
+func (s *AccessCardsService) Get(ctx context.Context, cardID string) (models.Union, error) {
+	var raw json.RawMessage
 	path := fmt.Sprintf("/v1/key-cards/%s", url.PathEscape(cardID))
-	err := s.client.Request(ctx, http.MethodGet, path, nil, &card)
+	err := s.client.Request(ctx, http.MethodGet, path, nil, &raw)
 	if err != nil {
 		return nil, fmt.Errorf("error getting card: %w", err)
 	}
-	return &card, nil
+	return parseUnionResponse(raw)
 }
 
 // Update updates an existing NFC key/card
@@ -102,4 +103,27 @@ func (s *AccessCardsService) Delete(ctx context.Context, cardID string) error {
 		return fmt.Errorf("error deleting card: %w", err)
 	}
 	return nil
+}
+
+func parseUnionResponse(raw json.RawMessage) (models.Union, error) {
+	var check struct {
+		Details []json.RawMessage `json:"details"`
+	}
+	if err := json.Unmarshal(raw, &check); err != nil {
+		return nil, fmt.Errorf("error parsing response: %w", err)
+	}
+
+	if len(check.Details) > 0 {
+		var uap models.UnifiedAccessPass
+		if err := json.Unmarshal(raw, &uap); err != nil {
+			return nil, fmt.Errorf("error parsing unified access pass: %w", err)
+		}
+		return &uap, nil
+	}
+
+	var card models.Card
+	if err := json.Unmarshal(raw, &card); err != nil {
+		return nil, fmt.Errorf("error parsing card: %w", err)
+	}
+	return &card, nil
 }

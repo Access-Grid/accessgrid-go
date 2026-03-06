@@ -42,6 +42,12 @@ func WithHTTPClient(httpClient *http.Client) client.Option {
 
 // Export model types for easy access
 type (
+	// Union is an interface for Card and UnifiedAccessPass
+	Union = models.Union
+
+	// UnifiedAccessPass represents a response from issuing to a template pair
+	UnifiedAccessPass = models.UnifiedAccessPass
+
 	// Device represents a device associated with an access pass
 	Device = models.Device
 
