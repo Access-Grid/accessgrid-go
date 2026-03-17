@@ -32,6 +32,7 @@ type Card struct {
 	Details               interface{}            `json:"details,omitempty"`
 	FileData              string                 `json:"file_data,omitempty"`
 	DirectInstallURL      string                 `json:"direct_install_url,omitempty"`
+	Temporary             bool                   `json:"temporary"`
 	Devices               []Device               `json:"devices,omitempty"`
 	Metadata              map[string]interface{} `json:"metadata,omitempty"`
 	CreatedAt             time.Time              `json:"created_at"`
@@ -56,6 +57,7 @@ type CardProvisionResponse struct {
 	URL              string    `json:"install_url"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
+	Temporary        bool      `json:"temporary"`
 	DirectInstallUrl string    `json:"direct_install_url"`
 	Details          []Card    `json:"details"`
 }
@@ -74,6 +76,7 @@ type ProvisionParams struct {
 	StartDate      time.Time `json:"start_date"`
 	ExpirationDate time.Time `json:"expiration_date"`
 	EmployeePhoto  string    `json:"employee_photo"`
+	Temporary      bool      `json:"temporary,omitempty"`
 }
 
 // UpdateParams defines parameters for updating an existing card
