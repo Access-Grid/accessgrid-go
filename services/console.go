@@ -73,6 +73,60 @@ func (s *ConsoleService) DeleteTemplate(ctx context.Context, templateID string) 
 	return nil
 }
 
+// ListPassTemplatePairs retrieves pass template pairs
+func (s *ConsoleService) ListPassTemplatePairs(ctx context.Context, params models.ListPassTemplatePairsParams) (*models.PassTemplatePairsResponse, error) {
+	var response models.PassTemplatePairsResponse
+
+	query := url.Values{}
+	if params.Page > 0 {
+		query.Add("page", fmt.Sprintf("%d", params.Page))
+	}
+	if params.PerPage > 0 {
+		query.Add("per_page", fmt.Sprintf("%d", params.PerPage))
+	}
+
+	u := url.URL{Path: "/v1/console/pass-template-pairs"}
+	if len(query) > 0 {
+		u.RawQuery = query.Encode()
+	}
+
+	err := s.client.Request(ctx, http.MethodGet, u.String(), nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error listing pass template pairs: %w", err)
+	}
+	return &response, nil
+}
+
+// ListLedgerItems retrieves billing ledger items
+func (s *ConsoleService) ListLedgerItems(ctx context.Context, params models.ListLedgerItemsParams) (*models.LedgerItemsResponse, error) {
+	var response models.LedgerItemsResponse
+
+	query := url.Values{}
+	if params.Page > 0 {
+		query.Add("page", fmt.Sprintf("%d", params.Page))
+	}
+	if params.PerPage > 0 {
+		query.Add("per_page", fmt.Sprintf("%d", params.PerPage))
+	}
+	if params.StartDate != nil {
+		query.Add("start_date", params.StartDate.Format(time.RFC3339))
+	}
+	if params.EndDate != nil {
+		query.Add("end_date", params.EndDate.Format(time.RFC3339))
+	}
+
+	u := url.URL{Path: "/v1/console/ledger-items"}
+	if len(query) > 0 {
+		u.RawQuery = query.Encode()
+	}
+
+	err := s.client.Request(ctx, http.MethodGet, u.String(), nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error listing ledger items: %w", err)
+	}
+	return &response, nil
+}
+
 // EventLog retrieves event logs for a specific template
 func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filters models.EventLogFilters) ([]models.Event, error) {
 	var events []models.Event
