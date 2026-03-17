@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -188,6 +189,86 @@ func TestAccessCardsService_CardStateOperations(t *testing.T) {
 	err = service.Delete(ctx, "0xc4rd1d")
 	if err != nil {
 		t.Errorf("Delete() error = %v", err)
+	}
+}
+
+func TestAccessCardsService_ProvisionTemporary(t *testing.T) {
+	var capturedBody string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		capturedBody = string(body)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "0xtemp1d",
+			"card_template_id": "0xd3adb00b5",
+			"full_name": "Temp Worker",
+			"state": "active",
+			"temporary": true,
+			"install_url": "https://accessgrid.com/install/0xtemp1d"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewAccessCardsService(c)
+
+	startDate, _ := time.Parse(time.RFC3339, "2025-01-01T00:00:00Z")
+	expDate, _ := time.Parse(time.RFC3339, "2025-01-02T00:00:00Z")
+
+	params := models.ProvisionParams{
+		CardTemplateID: "0xd3adb00b5",
+		EmployeeID:     "tmp_001",
+		CardNumber:     "99999",
+		FullName:       "Temp Worker",
+		Email:          "temp@example.com",
+		PhoneNumber:    "+15551234567",
+		Classification: "contractor",
+		StartDate:      startDate,
+		ExpirationDate: expDate,
+		Temporary:      true,
+	}
+
+	ctx := context.Background()
+	card, err := service.Provision(ctx, params)
+	if err != nil {
+		t.Fatalf("Provision() error = %v", err)
+	}
+
+	// Verify temporary is sent in request body
+	if !strings.Contains(capturedBody, `"temporary":true`) {
+		t.Errorf("expected temporary:true in request body, got %s", capturedBody)
+	}
+
+	// Verify temporary is deserialized on response
+	if !card.Temporary {
+		t.Errorf("card.Temporary = %v, want true", card.Temporary)
+	}
+}
+
+func TestAccessCardsService_NonTemporaryCard(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "0xc4rd1d",
+			"card_template_id": "0xd3adb00b5",
+			"full_name": "Regular Worker",
+			"state": "active",
+			"temporary": false
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewAccessCardsService(c)
+
+	ctx := context.Background()
+	card, err := service.Get(ctx, "0xc4rd1d")
+	if err != nil {
+		t.Fatalf("Get() error = %v", err)
+	}
+
+	if card.Temporary {
+		t.Errorf("card.Temporary = %v, want false", card.Temporary)
 	}
 }
 

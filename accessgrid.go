@@ -80,4 +80,34 @@ type (
 
 	// Event represents an event in the event log
 	Event = models.Event
+
+	// Pagination represents pagination metadata in list responses
+	Pagination = models.Pagination
+
+	// TemplateInfo represents minimal template info within a PassTemplatePair
+	TemplateInfo = models.TemplateInfo
+
+	// PassTemplatePair represents a paired iOS and Android template configuration
+	PassTemplatePair = models.PassTemplatePair
+
+	// PassTemplatePairsResponse represents the response from listing pass template pairs
+	PassTemplatePairsResponse = models.PassTemplatePairsResponse
+
+	// ListPassTemplatePairsParams defines parameters for listing pass template pairs
+	ListPassTemplatePairsParams = models.ListPassTemplatePairsParams
+
+	// LedgerItemPassTemplate represents a pass template reference within a ledger item's access pass
+	LedgerItemPassTemplate = models.LedgerItemPassTemplate
+
+	// LedgerItemAccessPass represents an access pass reference within a ledger item
+	LedgerItemAccessPass = models.LedgerItemAccessPass
+
+	// LedgerItem represents a billing ledger item
+	LedgerItem = models.LedgerItem
+
+	// LedgerItemsResponse represents the response from listing ledger items
+	LedgerItemsResponse = models.LedgerItemsResponse
+
+	// ListLedgerItemsParams defines parameters for listing ledger items
+	ListLedgerItemsParams = models.ListLedgerItemsParams
 )

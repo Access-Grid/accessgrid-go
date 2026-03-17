@@ -32,6 +32,7 @@ type Card struct {
 	Details               interface{}            `json:"details,omitempty"`
 	FileData              string                 `json:"file_data,omitempty"`
 	DirectInstallURL      string                 `json:"direct_install_url,omitempty"`
+	Temporary             bool                   `json:"temporary"`
 	Devices               []Device               `json:"devices,omitempty"`
 	Metadata              map[string]interface{} `json:"metadata,omitempty"`
 	CreatedAt             time.Time              `json:"created_at"`
@@ -56,6 +57,7 @@ type CardProvisionResponse struct {
 	URL              string    `json:"install_url"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
+	Temporary        bool      `json:"temporary"`
 	DirectInstallUrl string    `json:"direct_install_url"`
 	Details          []Card    `json:"details"`
 }
@@ -74,6 +76,7 @@ type ProvisionParams struct {
 	StartDate      time.Time `json:"start_date"`
 	ExpirationDate time.Time `json:"expiration_date"`
 	EmployeePhoto  string    `json:"employee_photo"`
+	Temporary      bool      `json:"temporary,omitempty"`
 }
 
 // UpdateParams defines parameters for updating an existing card
@@ -171,4 +174,83 @@ type Event struct {
 	Device     string    `json:"device"`
 	Timestamp  time.Time `json:"timestamp"`
 	Details    string    `json:"details"`
+}
+
+// Pagination represents pagination metadata in list responses
+type Pagination struct {
+	CurrentPage int `json:"current_page"`
+	PerPage     int `json:"per_page,omitempty"`
+	TotalPages  int `json:"total_pages"`
+	TotalCount  int `json:"total_count,omitempty"`
+}
+
+// TemplateInfo represents minimal template info within a PassTemplatePair
+type TemplateInfo struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Platform string `json:"platform"`
+}
+
+// PassTemplatePair represents a paired iOS and Android template configuration
+type PassTemplatePair struct {
+	ID              string        `json:"id"`
+	Name            string        `json:"name"`
+	CreatedAt       time.Time     `json:"created_at"`
+	IOSTemplate     *TemplateInfo `json:"ios_template"`
+	AndroidTemplate *TemplateInfo `json:"android_template"`
+}
+
+// PassTemplatePairsResponse represents the response from listing pass template pairs
+type PassTemplatePairsResponse struct {
+	PassTemplatePairs []PassTemplatePair `json:"pass_template_pairs"`
+	Pagination        Pagination         `json:"pagination"`
+}
+
+// ListPassTemplatePairsParams defines parameters for listing pass template pairs
+type ListPassTemplatePairsParams struct {
+	Page    int `json:"page,omitempty"`
+	PerPage int `json:"per_page,omitempty"`
+}
+
+// LedgerItemPassTemplate represents a pass template reference within a ledger item's access pass
+type LedgerItemPassTemplate struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Protocol string `json:"protocol"`
+	Platform string `json:"platform"`
+	UseCase  string `json:"use_case"`
+}
+
+// LedgerItemAccessPass represents an access pass reference within a ledger item
+type LedgerItemAccessPass struct {
+	ID                     string                  `json:"id"`
+	FullName               string                  `json:"full_name"`
+	State                  string                  `json:"state"`
+	Metadata               map[string]interface{}  `json:"metadata"`
+	UnifiedAccessPassExID  string                  `json:"unified_access_pass_ex_id"`
+	PassTemplate           *LedgerItemPassTemplate `json:"pass_template,omitempty"`
+}
+
+// LedgerItem represents a billing ledger item
+type LedgerItem struct {
+	CreatedAt  time.Time              `json:"created_at"`
+	Amount     float64                `json:"amount"`
+	ID         string                 `json:"id"`
+	Kind       string                 `json:"kind"`
+	Metadata   map[string]interface{} `json:"metadata"`
+	AccessPass *LedgerItemAccessPass  `json:"access_pass"`
+}
+
+// LedgerItemsResponse represents the response from listing ledger items
+type LedgerItemsResponse struct {
+	LedgerItems []LedgerItem `json:"ledger_items"`
+	Pagination  Pagination   `json:"pagination"`
+}
+
+// ListLedgerItemsParams defines parameters for listing ledger items
+type ListLedgerItemsParams struct {
+	Page      int        `json:"page,omitempty"`
+	PerPage   int        `json:"per_page,omitempty"`
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
 }
