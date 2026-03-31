@@ -273,3 +273,72 @@ type ListLedgerItemsParams struct {
 	StartDate *time.Time `json:"start_date,omitempty"`
 	EndDate   *time.Time `json:"end_date,omitempty"`
 }
+
+// IosPreflight represents an iOS In-App Provisioning preflight response
+type IosPreflight struct {
+	ProvisioningCredentialIdentifier string `json:"provisioningCredentialIdentifier"`
+	SharingInstanceIdentifier        string `json:"sharingInstanceIdentifier"`
+	CardTemplateIdentifier           string `json:"cardTemplateIdentifier"`
+	EnvironmentIdentifier            string `json:"environmentIdentifier"`
+}
+
+// IosPreflightParams defines parameters for iOS preflight
+type IosPreflightParams struct {
+	CardTemplateID string `json:"card_template_id"`
+	AccessPassExID string `json:"access_pass_ex_id"`
+}
+
+// Webhook represents a webhook configuration
+type Webhook struct {
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	URL              string   `json:"url"`
+	AuthMethod       string   `json:"auth_method"`
+	SubscribedEvents []string `json:"subscribed_events"`
+	CreatedAt        string   `json:"created_at"`
+	PrivateKey       string   `json:"private_key,omitempty"`
+	ClientCert       string   `json:"client_cert,omitempty"`
+	CertExpiresAt    string   `json:"cert_expires_at,omitempty"`
+}
+
+// WebhooksResponse represents the response from listing webhooks
+type WebhooksResponse struct {
+	Webhooks   []Webhook  `json:"webhooks"`
+	Pagination Pagination `json:"pagination"`
+}
+
+// CreateWebhookParams defines parameters for creating a webhook
+type CreateWebhookParams struct {
+	Name             string   `json:"name"`
+	URL              string   `json:"url"`
+	SubscribedEvents []string `json:"subscribed_events"`
+	AuthMethod       string   `json:"auth_method,omitempty"`
+}
+
+// HIDOrg represents an HID organization
+type HIDOrg struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Phone       string `json:"phone"`
+	FullAddress string `json:"full_address"`
+	Status      string `json:"status"`
+	CreatedAt   string `json:"created_at"`
+}
+
+// CreateHIDOrgParams defines parameters for creating an HID organization
+type CreateHIDOrgParams struct {
+	Name        string `json:"name"`
+	FullAddress string `json:"full_address"`
+	Phone       string `json:"phone"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+}
+
+// CompleteHIDOrgParams defines parameters for completing HID org registration
+type CompleteHIDOrgParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

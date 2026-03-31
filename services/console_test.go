@@ -612,6 +612,267 @@ func TestConsoleService_ListLedgerItems_WithFilters(t *testing.T) {
 	}
 }
 
+// --- iOS Preflight ---
+
+func TestConsoleService_IosPreflight(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/ios_preflight") {
+			t.Errorf("expected ios_preflight path, got %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"provisioningCredentialIdentifier": "prov_cred_123",
+			"sharingInstanceIdentifier": "share_inst_456",
+			"cardTemplateIdentifier": "card_tmpl_789",
+			"environmentIdentifier": "env_abc"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	result, err := service.IosPreflight(ctx, models.IosPreflightParams{
+		CardTemplateID: "tmpl_123",
+		AccessPassExID: "pass_456",
+	})
+	if err != nil {
+		t.Fatalf("IosPreflight() error = %v", err)
+	}
+
+	if result.ProvisioningCredentialIdentifier != "prov_cred_123" {
+		t.Errorf("ProvisioningCredentialIdentifier = %v, want prov_cred_123", result.ProvisioningCredentialIdentifier)
+	}
+	if result.SharingInstanceIdentifier != "share_inst_456" {
+		t.Errorf("SharingInstanceIdentifier = %v, want share_inst_456", result.SharingInstanceIdentifier)
+	}
+	if result.CardTemplateIdentifier != "card_tmpl_789" {
+		t.Errorf("CardTemplateIdentifier = %v, want card_tmpl_789", result.CardTemplateIdentifier)
+	}
+	if result.EnvironmentIdentifier != "env_abc" {
+		t.Errorf("EnvironmentIdentifier = %v, want env_abc", result.EnvironmentIdentifier)
+	}
+}
+
+// --- Webhooks ---
+
+func TestWebhooksService_Create(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/webhooks" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{
+			"id": "wh_123",
+			"name": "Production",
+			"url": "https://example.com/webhooks",
+			"auth_method": "bearer_token",
+			"subscribed_events": ["ag.access_pass.issued"],
+			"created_at": "2025-01-01T00:00:00Z",
+			"private_key": "pk_secret_123"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	webhook, err := service.Create(ctx, models.CreateWebhookParams{
+		Name:             "Production",
+		URL:              "https://example.com/webhooks",
+		SubscribedEvents: []string{"ag.access_pass.issued"},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	if webhook.ID != "wh_123" {
+		t.Errorf("webhook.ID = %v, want wh_123", webhook.ID)
+	}
+	if webhook.Name != "Production" {
+		t.Errorf("webhook.Name = %v, want Production", webhook.Name)
+	}
+	if webhook.PrivateKey != "pk_secret_123" {
+		t.Errorf("webhook.PrivateKey = %v, want pk_secret_123", webhook.PrivateKey)
+	}
+}
+
+func TestWebhooksService_List(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"webhooks": [
+				{"id": "wh_1", "name": "Prod", "url": "https://example.com/wh1", "auth_method": "bearer_token"},
+				{"id": "wh_2", "name": "Staging", "url": "https://example.com/wh2", "auth_method": "bearer_token"}
+			],
+			"pagination": {"current_page": 1, "total_pages": 1}
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	response, err := service.List(ctx)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(response.Webhooks) != 2 {
+		t.Fatalf("got %d webhooks, want 2", len(response.Webhooks))
+	}
+	if response.Webhooks[0].ID != "wh_1" {
+		t.Errorf("webhooks[0].ID = %v, want wh_1", response.Webhooks[0].ID)
+	}
+}
+
+func TestWebhooksService_Delete(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/v1/console/webhooks/wh_123") {
+			t.Errorf("expected webhook path, got %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	err := service.Delete(ctx, "wh_123")
+	if err != nil {
+		t.Errorf("Delete() error = %v", err)
+	}
+}
+
+// --- HID Orgs ---
+
+func TestHIDOrgsService_Create(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/hid/orgs" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{
+			"id": "org_123",
+			"name": "My Org",
+			"slug": "my-org",
+			"first_name": "Ada",
+			"last_name": "Lovelace",
+			"phone": "+1-555-0000",
+			"full_address": "1 Main St, NY NY",
+			"status": "pending",
+			"created_at": "2025-01-01T00:00:00Z"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewHIDOrgsService(c)
+
+	ctx := context.Background()
+	org, err := service.Create(ctx, &models.CreateHIDOrgParams{
+		Name:        "My Org",
+		FullAddress: "1 Main St, NY NY",
+		Phone:       "+1-555-0000",
+		FirstName:   "Ada",
+		LastName:    "Lovelace",
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	if org.ID != "org_123" {
+		t.Errorf("org.ID = %v, want org_123", org.ID)
+	}
+	if org.Name != "My Org" {
+		t.Errorf("org.Name = %v, want My Org", org.Name)
+	}
+	if org.Slug != "my-org" {
+		t.Errorf("org.Slug = %v, want my-org", org.Slug)
+	}
+	if org.Status != "pending" {
+		t.Errorf("org.Status = %v, want pending", org.Status)
+	}
+}
+
+func TestHIDOrgsService_List(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[
+			{"id": "org_1", "name": "Org One", "slug": "org-one", "status": "active", "created_at": "2025-01-01T00:00:00Z"},
+			{"id": "org_2", "name": "Org Two", "slug": "org-two", "status": "pending", "created_at": "2025-01-02T00:00:00Z"}
+		]`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewHIDOrgsService(c)
+
+	ctx := context.Background()
+	orgs, err := service.List(ctx)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(orgs) != 2 {
+		t.Fatalf("got %d orgs, want 2", len(orgs))
+	}
+	if orgs[0].ID != "org_1" {
+		t.Errorf("orgs[0].ID = %v, want org_1", orgs[0].ID)
+	}
+	if orgs[1].Name != "Org Two" {
+		t.Errorf("orgs[1].Name = %v, want Org Two", orgs[1].Name)
+	}
+}
+
+func TestHIDOrgsService_Activate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/hid/orgs/activate" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "org_123",
+			"name": "My Org",
+			"slug": "my-org",
+			"status": "active",
+			"created_at": "2025-01-01T00:00:00Z"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewHIDOrgsService(c)
+
+	ctx := context.Background()
+	org, err := service.Activate(ctx, &models.CompleteHIDOrgParams{
+		Email:    "admin@example.com",
+		Password: "hid-password-123",
+	})
+	if err != nil {
+		t.Fatalf("Activate() error = %v", err)
+	}
+
+	if org.Status != "active" {
+		t.Errorf("org.Status = %v, want active", org.Status)
+	}
+	if org.Name != "My Org" {
+		t.Errorf("org.Name = %v, want My Org", org.Name)
+	}
+}
+
 func TestConsoleService_ErrorPropagation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
