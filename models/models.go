@@ -136,14 +136,25 @@ type SupportInfo struct {
 
 // CreateTemplateParams defines parameters for creating a new template
 type CreateTemplateParams struct {
-	Name        string         `json:"name"`
-	Platform    string         `json:"platform"`
-	UseCase     string         `json:"use_case"`
-	Protocol    string         `json:"protocol"`
-	WatchCount  int            `json:"watch_count"`
-	IPhoneCount int            `json:"iphone_count"`
-	Design      TemplateDesign `json:"design"`
-	SupportInfo SupportInfo    `json:"support_info"`
+	Name                   string                 `json:"name"`
+	Platform               string                 `json:"platform"`
+	UseCase                string                 `json:"use_case"`
+	Protocol               string                 `json:"protocol"`
+	AllowOnMultipleDevices bool                   `json:"allow_on_multiple_devices,omitempty"`
+	WatchCount             int                    `json:"watch_count"`
+	IPhoneCount            int                    `json:"iphone_count"`
+	BackgroundColor        string                 `json:"background_color,omitempty"`
+	LabelColor             string                 `json:"label_color,omitempty"`
+	LabelSecondaryColor    string                 `json:"label_secondary_color,omitempty"`
+	BackgroundImage        string                 `json:"background_image,omitempty"`
+	LogoImage              string                 `json:"logo_image,omitempty"`
+	IconImage              string                 `json:"icon_image,omitempty"`
+	SupportURL             string                 `json:"support_url,omitempty"`
+	SupportPhoneNumber     string                 `json:"support_phone_number,omitempty"`
+	SupportEmail           string                 `json:"support_email,omitempty"`
+	PrivacyPolicyURL       string                 `json:"privacy_policy_url,omitempty"`
+	TermsAndConditionsURL  string                 `json:"terms_and_conditions_url,omitempty"`
+	Metadata               map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // UpdateTemplateParams defines parameters for updating an existing template
