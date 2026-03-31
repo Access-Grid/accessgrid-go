@@ -13,16 +13,73 @@ import (
 
 // ConsoleService handles operations related to the enterprise console
 type ConsoleService struct {
-	client *client.Client
-	HID    *HIDService
+	client   *client.Client
+	HID      *HIDService
+	Webhooks *WebhooksService
 }
 
 // NewConsoleService creates a new ConsoleService
 func NewConsoleService(c *client.Client) *ConsoleService {
 	return &ConsoleService{
-		client: c,
-		HID:    NewHIDService(c),
+		client:   c,
+		HID:      NewHIDService(c),
+		Webhooks: NewWebhooksService(c),
 	}
+}
+
+// IosPreflight retrieves iOS In-App Provisioning identifiers
+func (s *ConsoleService) IosPreflight(ctx context.Context, params models.IosPreflightParams) (*models.IosPreflight, error) {
+	var result models.IosPreflight
+	path := fmt.Sprintf("/v1/console/card-templates/%s/ios_preflight", url.PathEscape(params.CardTemplateID))
+	body := map[string]string{"access_pass_ex_id": params.AccessPassExID}
+	err := s.client.Request(ctx, http.MethodPost, path, body, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching iOS preflight: %w", err)
+	}
+	return &result, nil
+}
+
+// WebhooksService handles webhook operations
+type WebhooksService struct {
+	client *client.Client
+}
+
+// NewWebhooksService creates a new WebhooksService
+func NewWebhooksService(c *client.Client) *WebhooksService {
+	return &WebhooksService{client: c}
+}
+
+// Create creates a new webhook
+func (s *WebhooksService) Create(ctx context.Context, params models.CreateWebhookParams) (*models.Webhook, error) {
+	if params.AuthMethod == "" {
+		params.AuthMethod = "bearer_token"
+	}
+	var webhook models.Webhook
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/webhooks", params, &webhook)
+	if err != nil {
+		return nil, fmt.Errorf("error creating webhook: %w", err)
+	}
+	return &webhook, nil
+}
+
+// List retrieves all webhooks
+func (s *WebhooksService) List(ctx context.Context) (*models.WebhooksResponse, error) {
+	var response models.WebhooksResponse
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/webhooks", nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error listing webhooks: %w", err)
+	}
+	return &response, nil
+}
+
+// Delete deletes a webhook by ID
+func (s *WebhooksService) Delete(ctx context.Context, webhookID string) error {
+	path := fmt.Sprintf("/v1/console/webhooks/%s", url.PathEscape(webhookID))
+	err := s.client.Request(ctx, http.MethodDelete, path, nil, nil)
+	if err != nil {
+		return fmt.Errorf("error deleting webhook: %w", err)
+	}
+	return nil
 }
 
 // HIDService provides access to HID-related services

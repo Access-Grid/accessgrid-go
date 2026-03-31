@@ -552,11 +552,11 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
 | GET /v1/console/pass-template-pairs | `Console.ListPassTemplatePairs()` | Y |
-| POST /v1/console/card-templates/{id}/ios_preflight | `Console.IosPreflight()` | - |
+| POST /v1/console/card-templates/{id}/ios_preflight | `Console.IosPreflight()` | Y |
 | GET /v1/console/ledger-items | `Console.ListLedgerItems()` | Y |
-| GET /v1/console/webhooks | `Console.Webhooks.List()` | - |
-| POST /v1/console/webhooks | `Console.Webhooks.Create()` | - |
-| DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | - |
+| GET /v1/console/webhooks | `Console.Webhooks.List()` | Y |
+| POST /v1/console/webhooks | `Console.Webhooks.Create()` | Y |
+| DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | Y |
 | POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | Y |
 | POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | Y |
 | GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | Y |

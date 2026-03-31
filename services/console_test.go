@@ -612,6 +612,149 @@ func TestConsoleService_ListLedgerItems_WithFilters(t *testing.T) {
 	}
 }
 
+// --- iOS Preflight ---
+
+func TestConsoleService_IosPreflight(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/ios_preflight") {
+			t.Errorf("expected ios_preflight path, got %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"provisioningCredentialIdentifier": "prov_cred_123",
+			"sharingInstanceIdentifier": "share_inst_456",
+			"cardTemplateIdentifier": "card_tmpl_789",
+			"environmentIdentifier": "env_abc"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	result, err := service.IosPreflight(ctx, models.IosPreflightParams{
+		CardTemplateID: "tmpl_123",
+		AccessPassExID: "pass_456",
+	})
+	if err != nil {
+		t.Fatalf("IosPreflight() error = %v", err)
+	}
+
+	if result.ProvisioningCredentialIdentifier != "prov_cred_123" {
+		t.Errorf("ProvisioningCredentialIdentifier = %v, want prov_cred_123", result.ProvisioningCredentialIdentifier)
+	}
+	if result.SharingInstanceIdentifier != "share_inst_456" {
+		t.Errorf("SharingInstanceIdentifier = %v, want share_inst_456", result.SharingInstanceIdentifier)
+	}
+	if result.CardTemplateIdentifier != "card_tmpl_789" {
+		t.Errorf("CardTemplateIdentifier = %v, want card_tmpl_789", result.CardTemplateIdentifier)
+	}
+	if result.EnvironmentIdentifier != "env_abc" {
+		t.Errorf("EnvironmentIdentifier = %v, want env_abc", result.EnvironmentIdentifier)
+	}
+}
+
+// --- Webhooks ---
+
+func TestWebhooksService_Create(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/webhooks" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{
+			"id": "wh_123",
+			"name": "Production",
+			"url": "https://example.com/webhooks",
+			"auth_method": "bearer_token",
+			"subscribed_events": ["ag.access_pass.issued"],
+			"created_at": "2025-01-01T00:00:00Z",
+			"private_key": "pk_secret_123"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	webhook, err := service.Create(ctx, models.CreateWebhookParams{
+		Name:             "Production",
+		URL:              "https://example.com/webhooks",
+		SubscribedEvents: []string{"ag.access_pass.issued"},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	if webhook.ID != "wh_123" {
+		t.Errorf("webhook.ID = %v, want wh_123", webhook.ID)
+	}
+	if webhook.Name != "Production" {
+		t.Errorf("webhook.Name = %v, want Production", webhook.Name)
+	}
+	if webhook.PrivateKey != "pk_secret_123" {
+		t.Errorf("webhook.PrivateKey = %v, want pk_secret_123", webhook.PrivateKey)
+	}
+}
+
+func TestWebhooksService_List(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"webhooks": [
+				{"id": "wh_1", "name": "Prod", "url": "https://example.com/wh1", "auth_method": "bearer_token"},
+				{"id": "wh_2", "name": "Staging", "url": "https://example.com/wh2", "auth_method": "bearer_token"}
+			],
+			"pagination": {"current_page": 1, "total_pages": 1}
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	response, err := service.List(ctx)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(response.Webhooks) != 2 {
+		t.Fatalf("got %d webhooks, want 2", len(response.Webhooks))
+	}
+	if response.Webhooks[0].ID != "wh_1" {
+		t.Errorf("webhooks[0].ID = %v, want wh_1", response.Webhooks[0].ID)
+	}
+}
+
+func TestWebhooksService_Delete(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/v1/console/webhooks/wh_123") {
+			t.Errorf("expected webhook path, got %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	err := service.Delete(ctx, "wh_123")
+	if err != nil {
+		t.Errorf("Delete() error = %v", err)
+	}
+}
+
 // --- HID Orgs ---
 
 func TestHIDOrgsService_Create(t *testing.T) {

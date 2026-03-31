@@ -111,6 +111,21 @@ type (
 	// ListLedgerItemsParams defines parameters for listing ledger items
 	ListLedgerItemsParams = models.ListLedgerItemsParams
 
+	// IosPreflight represents an iOS In-App Provisioning preflight response
+	IosPreflight = models.IosPreflight
+
+	// IosPreflightParams defines parameters for iOS preflight
+	IosPreflightParams = models.IosPreflightParams
+
+	// Webhook represents a webhook configuration
+	Webhook = models.Webhook
+
+	// WebhooksResponse represents the response from listing webhooks
+	WebhooksResponse = models.WebhooksResponse
+
+	// CreateWebhookParams defines parameters for creating a webhook
+	CreateWebhookParams = models.CreateWebhookParams
+
 	// HIDOrg represents an HID organization
 	HIDOrg = models.HIDOrg
 
