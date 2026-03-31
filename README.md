@@ -433,6 +433,60 @@ func main() {
 }
 ```
 
+### HID Organizations
+
+#### Create an HID org
+
+```go
+ctx := context.Background()
+org, err := client.Console.HID.Orgs.Create(ctx, &accessgrid.CreateHIDOrgParams{
+    Name:        "My Org",
+    FullAddress: "1 Main St, NY NY",
+    Phone:       "+1-555-0000",
+    FirstName:   "Ada",
+    LastName:    "Lovelace",
+})
+if err != nil {
+    fmt.Printf("Error creating org: %v\n", err)
+    return
+}
+
+fmt.Printf("Created org: %s (ID: %s)\n", org.Name, org.ID)
+fmt.Printf("Slug: %s\n", org.Slug)
+```
+
+#### List HID orgs
+
+```go
+ctx := context.Background()
+orgs, err := client.Console.HID.Orgs.List(ctx)
+if err != nil {
+    fmt.Printf("Error listing orgs: %v\n", err)
+    return
+}
+
+for _, org := range orgs {
+    fmt.Printf("Org ID: %s, Name: %s, Slug: %s\n", org.ID, org.Name, org.Slug)
+}
+```
+
+#### Activate an HID org
+
+```go
+ctx := context.Background()
+result, err := client.Console.HID.Orgs.Activate(ctx, &accessgrid.CompleteHIDOrgParams{
+    Email:    "admin@example.com",
+    Password: "hid-password-123",
+})
+if err != nil {
+    fmt.Printf("Error completing registration: %v\n", err)
+    return
+}
+
+fmt.Printf("Completed registration for org: %s\n", result.Name)
+fmt.Printf("Status: %s\n", result.Status)
+```
+
 ## Configuration
 
 The SDK can be configured with custom options:
@@ -503,9 +557,9 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | GET /v1/console/webhooks | `Console.Webhooks.List()` | - |
 | POST /v1/console/webhooks | `Console.Webhooks.Create()` | - |
 | DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | - |
-| POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | - |
-| POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | - |
-| GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | - |
+| POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | Y |
+| POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | Y |
+| GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | Y |
 
 ## License
 

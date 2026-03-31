@@ -110,4 +110,13 @@ type (
 
 	// ListLedgerItemsParams defines parameters for listing ledger items
 	ListLedgerItemsParams = models.ListLedgerItemsParams
+
+	// HIDOrg represents an HID organization
+	HIDOrg = models.HIDOrg
+
+	// CreateHIDOrgParams defines parameters for creating an HID organization
+	CreateHIDOrgParams = models.CreateHIDOrgParams
+
+	// CompleteHIDOrgParams defines parameters for completing HID org registration
+	CompleteHIDOrgParams = models.CompleteHIDOrgParams
 )

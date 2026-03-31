@@ -612,6 +612,124 @@ func TestConsoleService_ListLedgerItems_WithFilters(t *testing.T) {
 	}
 }
 
+// --- HID Orgs ---
+
+func TestHIDOrgsService_Create(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/hid/orgs" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{
+			"id": "org_123",
+			"name": "My Org",
+			"slug": "my-org",
+			"first_name": "Ada",
+			"last_name": "Lovelace",
+			"phone": "+1-555-0000",
+			"full_address": "1 Main St, NY NY",
+			"status": "pending",
+			"created_at": "2025-01-01T00:00:00Z"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewHIDOrgsService(c)
+
+	ctx := context.Background()
+	org, err := service.Create(ctx, &models.CreateHIDOrgParams{
+		Name:        "My Org",
+		FullAddress: "1 Main St, NY NY",
+		Phone:       "+1-555-0000",
+		FirstName:   "Ada",
+		LastName:    "Lovelace",
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	if org.ID != "org_123" {
+		t.Errorf("org.ID = %v, want org_123", org.ID)
+	}
+	if org.Name != "My Org" {
+		t.Errorf("org.Name = %v, want My Org", org.Name)
+	}
+	if org.Slug != "my-org" {
+		t.Errorf("org.Slug = %v, want my-org", org.Slug)
+	}
+	if org.Status != "pending" {
+		t.Errorf("org.Status = %v, want pending", org.Status)
+	}
+}
+
+func TestHIDOrgsService_List(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[
+			{"id": "org_1", "name": "Org One", "slug": "org-one", "status": "active", "created_at": "2025-01-01T00:00:00Z"},
+			{"id": "org_2", "name": "Org Two", "slug": "org-two", "status": "pending", "created_at": "2025-01-02T00:00:00Z"}
+		]`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewHIDOrgsService(c)
+
+	ctx := context.Background()
+	orgs, err := service.List(ctx)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(orgs) != 2 {
+		t.Fatalf("got %d orgs, want 2", len(orgs))
+	}
+	if orgs[0].ID != "org_1" {
+		t.Errorf("orgs[0].ID = %v, want org_1", orgs[0].ID)
+	}
+	if orgs[1].Name != "Org Two" {
+		t.Errorf("orgs[1].Name = %v, want Org Two", orgs[1].Name)
+	}
+}
+
+func TestHIDOrgsService_Activate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/hid/orgs/activate" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "org_123",
+			"name": "My Org",
+			"slug": "my-org",
+			"status": "active",
+			"created_at": "2025-01-01T00:00:00Z"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewHIDOrgsService(c)
+
+	ctx := context.Background()
+	org, err := service.Activate(ctx, &models.CompleteHIDOrgParams{
+		Email:    "admin@example.com",
+		Password: "hid-password-123",
+	})
+	if err != nil {
+		t.Fatalf("Activate() error = %v", err)
+	}
+
+	if org.Status != "active" {
+		t.Errorf("org.Status = %v, want active", org.Status)
+	}
+	if org.Name != "My Org" {
+		t.Errorf("org.Name = %v, want My Org", org.Name)
+	}
+}
+
 func TestConsoleService_ErrorPropagation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

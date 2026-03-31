@@ -14,11 +14,67 @@ import (
 // ConsoleService handles operations related to the enterprise console
 type ConsoleService struct {
 	client *client.Client
+	HID    *HIDService
 }
 
 // NewConsoleService creates a new ConsoleService
-func NewConsoleService(client *client.Client) *ConsoleService {
-	return &ConsoleService{client: client}
+func NewConsoleService(c *client.Client) *ConsoleService {
+	return &ConsoleService{
+		client: c,
+		HID:    NewHIDService(c),
+	}
+}
+
+// HIDService provides access to HID-related services
+type HIDService struct {
+	Orgs *HIDOrgsService
+}
+
+// NewHIDService creates a new HIDService
+func NewHIDService(c *client.Client) *HIDService {
+	return &HIDService{
+		Orgs: NewHIDOrgsService(c),
+	}
+}
+
+// HIDOrgsService handles HID organization operations
+type HIDOrgsService struct {
+	client *client.Client
+}
+
+// NewHIDOrgsService creates a new HIDOrgsService
+func NewHIDOrgsService(c *client.Client) *HIDOrgsService {
+	return &HIDOrgsService{client: c}
+}
+
+// Create creates a new HID organization
+func (s *HIDOrgsService) Create(ctx context.Context, params *models.CreateHIDOrgParams) (*models.HIDOrg, error) {
+	var org models.HIDOrg
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/hid/orgs", params, &org)
+	if err != nil {
+		return nil, fmt.Errorf("error creating HID org: %w", err)
+	}
+	return &org, nil
+}
+
+// List retrieves all HID organizations
+func (s *HIDOrgsService) List(ctx context.Context) ([]models.HIDOrg, error) {
+	var orgs []models.HIDOrg
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/hid/orgs", nil, &orgs)
+	if err != nil {
+		return nil, fmt.Errorf("error listing HID orgs: %w", err)
+	}
+	return orgs, nil
+}
+
+// Activate completes HID org registration with credentials
+func (s *HIDOrgsService) Activate(ctx context.Context, params *models.CompleteHIDOrgParams) (*models.HIDOrg, error) {
+	var org models.HIDOrg
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/hid/orgs/activate", params, &org)
+	if err != nil {
+		return nil, fmt.Errorf("error activating HID org: %w", err)
+	}
+	return &org, nil
 }
 
 // CreateTemplate creates a new card template
