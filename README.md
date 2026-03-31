@@ -271,33 +271,26 @@ func main() {
        return
    }
 
-   design := accessgrid.TemplateDesign{
-       BackgroundColor:     "#FFFFFF",
-       LabelColor:         "#000000",
-       LabelSecondaryColor: "#333333",
-       BackgroundImage:     "[image_in_base64_encoded_format]",
-       LogoImage:          "[image_in_base64_encoded_format]",
-       IconImage:          "[image_in_base64_encoded_format]",
-   }
-
-   supportInfo := accessgrid.SupportInfo{
-       SupportURL:           "https://help.yourcompany.com",
-       SupportPhoneNumber:   "+1-555-123-4567",
-       SupportEmail:         "support@yourcompany.com",
-       PrivacyPolicyURL:     "https://yourcompany.com/privacy",
-       TermsAndConditionsURL: "https://yourcompany.com/terms",
-   }
-
    params := accessgrid.CreateTemplateParams{
-       Name:                 "Employee NFC key",
-       Platform:            "apple",
-       UseCase:             "employee_badge",
-       Protocol:            "desfire",
+       Name:                   "Employee Access Pass",
+       Platform:               "apple",
+       UseCase:                "employee_badge",
+       Protocol:               "desfire",
        AllowOnMultipleDevices: true,
-       WatchCount:          2,
-       IPhoneCount:         3,
-       Design:              design,
-       SupportInfo:         supportInfo,
+       WatchCount:             2,
+       IPhoneCount:            3,
+       BackgroundColor:        "#FFFFFF",
+       LabelColor:             "#000000",
+       LabelSecondaryColor:    "#333333",
+       SupportURL:             "https://help.yourcompany.com",
+       SupportPhoneNumber:     "+1-555-123-4567",
+       SupportEmail:           "support@yourcompany.com",
+       PrivacyPolicyURL:       "https://yourcompany.com/privacy",
+       TermsAndConditionsURL:  "https://yourcompany.com/terms",
+       Metadata: map[string]interface{}{
+           "version":         "2.1",
+           "approval_status": "approved",
+       },
    }
 
    ctx := context.Background()
@@ -487,6 +480,32 @@ The SDK automatically handles:
 - HTTPS communication
 
 Never expose your `secretKey` in source code. Always use environment variables or a secure configuration management system.
+
+## Feature Matrix
+
+| Endpoint | Method | Supported |
+|---|---|:---:|
+| POST /v1/key-cards | `AccessCards.Provision()` | Y |
+| GET /v1/key-cards/{id} | `AccessCards.Get()` | Y |
+| PATCH /v1/key-cards/{id} | `AccessCards.Update()` | Y |
+| GET /v1/key-cards | `AccessCards.List()` | Y |
+| POST /v1/key-cards/{id}/suspend | `AccessCards.Suspend()` | Y |
+| POST /v1/key-cards/{id}/resume | `AccessCards.Resume()` | Y |
+| POST /v1/key-cards/{id}/unlink | `AccessCards.Unlink()` | Y |
+| POST /v1/key-cards/{id}/delete | `AccessCards.Delete()` | Y |
+| POST /v1/console/card-templates | `Console.CreateTemplate()` | Y |
+| PUT /v1/console/card-templates/{id} | `Console.UpdateTemplate()` | Y |
+| GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
+| GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
+| GET /v1/console/pass-template-pairs | `Console.ListPassTemplatePairs()` | Y |
+| POST /v1/console/card-templates/{id}/ios_preflight | `Console.IosPreflight()` | - |
+| GET /v1/console/ledger-items | `Console.ListLedgerItems()` | Y |
+| GET /v1/console/webhooks | `Console.Webhooks.List()` | - |
+| POST /v1/console/webhooks | `Console.Webhooks.Create()` | - |
+| DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | - |
+| POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | - |
+| POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | - |
+| GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | - |
 
 ## License
 

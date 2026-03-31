@@ -157,29 +157,26 @@ func TestConsoleService_CreateTemplate(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
 
-	design := models.TemplateDesign{
-		BackgroundColor:     "#FFFFFF",
-		LabelColor:          "#000000",
-		LabelSecondaryColor: "#333333",
-	}
-
-	supportInfo := models.SupportInfo{
-		SupportURL:            "https://help.example.com",
-		SupportPhoneNumber:    "+1-555-123-4567",
-		SupportEmail:          "support@example.com",
-		PrivacyPolicyURL:      "https://example.com/privacy",
-		TermsAndConditionsURL: "https://example.com/terms",
-	}
-
 	params := models.CreateTemplateParams{
-		Name:        "Employee NFC key",
-		Platform:    "apple",
-		UseCase:     "employee_badge",
-		Protocol:    "desfire",
-		WatchCount:  2,
-		IPhoneCount: 3,
-		Design:      design,
-		SupportInfo: supportInfo,
+		Name:                   "Employee NFC key",
+		Platform:               "apple",
+		UseCase:                "employee_badge",
+		Protocol:               "desfire",
+		AllowOnMultipleDevices: true,
+		WatchCount:             2,
+		IPhoneCount:            3,
+		BackgroundColor:        "#FFFFFF",
+		LabelColor:             "#000000",
+		LabelSecondaryColor:    "#333333",
+		SupportURL:             "https://help.example.com",
+		SupportPhoneNumber:     "+1-555-123-4567",
+		SupportEmail:           "support@example.com",
+		PrivacyPolicyURL:       "https://example.com/privacy",
+		TermsAndConditionsURL:  "https://example.com/terms",
+		Metadata: map[string]interface{}{
+			"version":         "2.1",
+			"approval_status": "approved",
+		},
 	}
 
 	ctx := context.Background()
