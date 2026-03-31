@@ -159,12 +159,20 @@ type CreateTemplateParams struct {
 
 // UpdateTemplateParams defines parameters for updating an existing template
 type UpdateTemplateParams struct {
-	CardTemplateID string          `json:"card_template_id"`
-	Name           string          `json:"name,omitempty"`
-	WatchCount     int             `json:"watch_count,omitempty"`
-	IPhoneCount    int             `json:"iphone_count,omitempty"`
-	Design         *TemplateDesign `json:"design,omitempty"`
-	SupportInfo    *SupportInfo    `json:"support_info,omitempty"`
+	CardTemplateID         string                 `json:"card_template_id"`
+	Name                   string                 `json:"name,omitempty"`
+	AllowOnMultipleDevices *bool                  `json:"allow_on_multiple_devices,omitempty"`
+	WatchCount             int                    `json:"watch_count,omitempty"`
+	IPhoneCount            int                    `json:"iphone_count,omitempty"`
+	BackgroundColor        string                 `json:"background_color,omitempty"`
+	LabelColor             string                 `json:"label_color,omitempty"`
+	LabelSecondaryColor    string                 `json:"label_secondary_color,omitempty"`
+	SupportURL             string                 `json:"support_url,omitempty"`
+	SupportPhoneNumber     string                 `json:"support_phone_number,omitempty"`
+	SupportEmail           string                 `json:"support_email,omitempty"`
+	PrivacyPolicyURL       string                 `json:"privacy_policy_url,omitempty"`
+	TermsAndConditionsURL  string                 `json:"terms_and_conditions_url,omitempty"`
+	Metadata               map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // EventLogFilters defines parameters for filtering event logs

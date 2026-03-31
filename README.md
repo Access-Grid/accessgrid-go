@@ -325,21 +325,21 @@ func main() {
        return
    }
 
-   supportInfo := accessgrid.SupportInfo{
-       SupportURL:           "https://help.yourcompany.com",
-       SupportPhoneNumber:   "+1-555-123-4567",
-       SupportEmail:         "support@yourcompany.com",
-       PrivacyPolicyURL:     "https://yourcompany.com/privacy",
-       TermsAndConditionsURL: "https://yourcompany.com/terms",
-   }
-
+   allowMulti := true
    params := accessgrid.UpdateTemplateParams{
-       CardTemplateID:       "0xd3adb00b5",
-       Name:                "Updated Employee NFC key",
-       AllowOnMultipleDevices: true,
-       WatchCount:          2,
-       IPhoneCount:         3,
-       SupportInfo:         supportInfo,
+       CardTemplateID:         "0xd3adb00b5",
+       Name:                   "Updated Employee Access Pass",
+       AllowOnMultipleDevices: &allowMulti,
+       WatchCount:             2,
+       IPhoneCount:            3,
+       BackgroundColor:        "#FFFFFF",
+       LabelColor:             "#000000",
+       LabelSecondaryColor:    "#333333",
+       SupportURL:             "https://help.yourcompany.com",
+       SupportPhoneNumber:     "+1-555-123-4567",
+       SupportEmail:           "support@yourcompany.com",
+       PrivacyPolicyURL:       "https://yourcompany.com/privacy",
+       TermsAndConditionsURL:  "https://yourcompany.com/terms",
    }
 
    ctx := context.Background()

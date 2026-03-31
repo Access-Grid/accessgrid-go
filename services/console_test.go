@@ -200,18 +200,18 @@ func TestConsoleService_UpdateTemplate(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
 
-	supportInfo := models.SupportInfo{
-		SupportURL:         "https://help.example.com",
-		SupportPhoneNumber: "+1-555-123-4567",
-		SupportEmail:       "support@example.com",
-	}
-
+	allowMulti := true
 	params := models.UpdateTemplateParams{
-		CardTemplateID: "0xd3adb00b5",
-		Name:           "Updated Employee NFC key",
-		WatchCount:     2,
-		IPhoneCount:    3,
-		SupportInfo:    &supportInfo,
+		CardTemplateID:         "0xd3adb00b5",
+		Name:                   "Updated Employee NFC key",
+		AllowOnMultipleDevices: &allowMulti,
+		WatchCount:             2,
+		IPhoneCount:            3,
+		BackgroundColor:        "#FFFFFF",
+		LabelColor:             "#000000",
+		SupportURL:             "https://help.example.com",
+		SupportPhoneNumber:     "+1-555-123-4567",
+		SupportEmail:           "support@example.com",
 	}
 
 	ctx := context.Background()
