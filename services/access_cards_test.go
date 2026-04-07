@@ -272,6 +272,121 @@ func TestAccessCardsService_NonTemporaryCard(t *testing.T) {
 	}
 }
 
+func TestAccessCardsService_CardNewFields(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "0xc4rd1d",
+			"card_template_id": "0xd3adb00b5",
+			"employee_id": "emp_123",
+			"organization_name": "Acme Corp",
+			"full_name": "Jane Doe",
+			"title": "Engineering Manager",
+			"state": "active",
+			"temporary": false,
+			"created_at": "2025-06-01T00:00:00Z"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewAccessCardsService(c)
+
+	ctx := context.Background()
+	card, err := service.Get(ctx, "0xc4rd1d")
+	if err != nil {
+		t.Fatalf("Get() error = %v", err)
+	}
+
+	if card.EmployeeID != "emp_123" {
+		t.Errorf("card.EmployeeID = %v, want emp_123", card.EmployeeID)
+	}
+	if card.OrganizationName != "Acme Corp" {
+		t.Errorf("card.OrganizationName = %v, want Acme Corp", card.OrganizationName)
+	}
+	if card.Title != "Engineering Manager" {
+		t.Errorf("card.Title = %v, want Engineering Manager", card.Title)
+	}
+}
+
+func TestAccessCardsService_ProvisionWithNewParams(t *testing.T) {
+	var capturedBody string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		capturedBody = string(body)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "0xc4rd1d",
+			"card_template_id": "0xd3adb00b5",
+			"full_name": "Employee name",
+			"state": "active",
+			"install_url": "https://accessgrid.com/install/0xc4rd1d"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewAccessCardsService(c)
+
+	startDate, _ := time.Parse(time.RFC3339, "2025-01-01T00:00:00Z")
+	expDate, _ := time.Parse(time.RFC3339, "2025-04-01T00:00:00Z")
+
+	params := models.ProvisionParams{
+		CardTemplateID: "0xd3adb00b5",
+		EmployeeID:     "123456789",
+		TagID:          "DDEADB33FB00B5",
+		FullName:       "Employee name",
+		Email:          "employee@example.com",
+		PhoneNumber:    "+19547212241",
+		Classification: "full_time",
+		Department:     "Engineering",
+		Location:       "San Francisco",
+		SiteName:       "HQ Building A",
+		Workstation:    "4F-207",
+		MailStop:       "MS-401",
+		CompanyAddress: "123 Main St, San Francisco, CA 94105",
+		Title:          "Engineering Manager",
+		StartDate:      startDate,
+		ExpirationDate: expDate,
+		Metadata: map[string]interface{}{
+			"department": "engineering",
+			"badge_type": "contractor",
+		},
+	}
+
+	ctx := context.Background()
+	_, err := service.Provision(ctx, params)
+	if err != nil {
+		t.Fatalf("Provision() error = %v", err)
+	}
+
+	// Verify new fields are sent in request body
+	if !strings.Contains(capturedBody, `"department":"Engineering"`) {
+		t.Errorf("expected department in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"location":"San Francisco"`) {
+		t.Errorf("expected location in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"site_name":"HQ Building A"`) {
+		t.Errorf("expected site_name in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"workstation":"4F-207"`) {
+		t.Errorf("expected workstation in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"mail_stop":"MS-401"`) {
+		t.Errorf("expected mail_stop in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"company_address":"123 Main St, San Francisco, CA 94105"`) {
+		t.Errorf("expected company_address in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"tag_id":"DDEADB33FB00B5"`) {
+		t.Errorf("expected tag_id in request body, got %s", capturedBody)
+	}
+	if !strings.Contains(capturedBody, `"metadata"`) {
+		t.Errorf("expected metadata in request body, got %s", capturedBody)
+	}
+}
+
 func TestAccessCardsService_ErrorPropagation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

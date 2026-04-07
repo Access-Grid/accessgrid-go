@@ -136,13 +136,13 @@ func (c *Client) Request(ctx context.Context, method, path string, body interfac
 			Error     string `json:"error"`
 			RequestID string `json:"request_id"`
 		}
-		
+
 		apiError := &APIError{
 			StatusCode: resp.StatusCode,
 			RawBody:    string(respBody),
 			RequestID:  resp.Header.Get("X-Request-ID"), // Extract request ID from header if available
 		}
-		
+
 		if err := json.Unmarshal(respBody, &apiErrorResp); err != nil {
 			apiError.Message = string(respBody)
 		} else {
@@ -154,12 +154,12 @@ func (c *Client) Request(ctx context.Context, method, path string, body interfac
 			} else {
 				apiError.Message = string(respBody)
 			}
-			
+
 			if apiErrorResp.RequestID != "" {
 				apiError.RequestID = apiErrorResp.RequestID
 			}
 		}
-		
+
 		return apiError
 	}
 

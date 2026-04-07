@@ -14,29 +14,31 @@ type Device struct {
 
 // Card represents an NFC key or access pass
 type Card struct {
-	ID                    string                 `json:"id"`
-	CardTemplateID        string                 `json:"card_template_id"`
-	EmployeeID            string                 `json:"employee_id"`
-	CardNumber            string                 `json:"card_number"`
-	SiteCode              string                 `json:"site_code,omitempty"`
-	FullName              string                 `json:"full_name"`
-	Email                 string                 `json:"email"`
-	PhoneNumber           string                 `json:"phone_number"`
-	Classification        string                 `json:"classification"`
-	StartDate             time.Time              `json:"start_date"`
-	ExpirationDate        time.Time              `json:"expiration_date"`
-	EmployeePhoto         string                 `json:"employee_photo"`
-	State                 string                 `json:"state"`
-	URL                   string                 `json:"install_url"`
-	InstallURL            string                 `json:"install_url"`
-	Details               interface{}            `json:"details,omitempty"`
-	FileData              string                 `json:"file_data,omitempty"`
-	DirectInstallURL      string                 `json:"direct_install_url,omitempty"`
-	Temporary             bool                   `json:"temporary"`
-	Devices               []Device               `json:"devices,omitempty"`
-	Metadata              map[string]interface{} `json:"metadata,omitempty"`
-	CreatedAt             time.Time              `json:"created_at"`
-	UpdatedAt             time.Time              `json:"updated_at"`
+	ID               string                 `json:"id"`
+	CardTemplateID   string                 `json:"card_template_id"`
+	EmployeeID       string                 `json:"employee_id"`
+	OrganizationName string                 `json:"organization_name,omitempty"`
+	CardNumber       string                 `json:"card_number"`
+	SiteCode         string                 `json:"site_code,omitempty"`
+	FullName         string                 `json:"full_name"`
+	Email            string                 `json:"email"`
+	PhoneNumber      string                 `json:"phone_number"`
+	Classification   string                 `json:"classification"`
+	Title            string                 `json:"title,omitempty"`
+	StartDate        time.Time              `json:"start_date"`
+	ExpirationDate   time.Time              `json:"expiration_date"`
+	EmployeePhoto    string                 `json:"employee_photo"`
+	State            string                 `json:"state"`
+	URL              string                 `json:"url,omitempty"`
+	InstallURL       string                 `json:"install_url"`
+	Details          interface{}            `json:"details,omitempty"`
+	FileData         string                 `json:"file_data,omitempty"`
+	DirectInstallURL string                 `json:"direct_install_url,omitempty"`
+	Temporary        bool                   `json:"temporary"`
+	Devices          []Device               `json:"devices,omitempty"`
+	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt        time.Time              `json:"created_at"`
+	UpdatedAt        time.Time              `json:"updated_at"`
 }
 
 // CardProvisionResponse represents the response from provisioning a card
@@ -64,19 +66,28 @@ type CardProvisionResponse struct {
 
 // ProvisionParams defines parameters for provisioning a new card
 type ProvisionParams struct {
-	CardTemplateID string    `json:"card_template_id"`
-	EmployeeID     string    `json:"employee_id"`
-	CardNumber     string    `json:"card_number"`
-	SiteCode       string    `json:"site_code,omitempty"`
-	FullName       string    `json:"full_name"`
-	Email          string    `json:"email"`
-	PhoneNumber    string    `json:"phone_number"`
-	Classification string    `json:"classification"`
-	Title          string    `json:"title,omitempty"`
-	StartDate      time.Time `json:"start_date"`
-	ExpirationDate time.Time `json:"expiration_date"`
-	EmployeePhoto  string    `json:"employee_photo"`
-	Temporary      bool      `json:"temporary,omitempty"`
+	CardTemplateID         string                 `json:"card_template_id"`
+	EmployeeID             string                 `json:"employee_id,omitempty"`
+	TagID                  string                 `json:"tag_id,omitempty"`
+	AllowOnMultipleDevices bool                   `json:"allow_on_multiple_devices,omitempty"`
+	CardNumber             string                 `json:"card_number,omitempty"`
+	SiteCode               string                 `json:"site_code,omitempty"`
+	FullName               string                 `json:"full_name,omitempty"`
+	Email                  string                 `json:"email,omitempty"`
+	PhoneNumber            string                 `json:"phone_number,omitempty"`
+	Classification         string                 `json:"classification,omitempty"`
+	Title                  string                 `json:"title,omitempty"`
+	Department             string                 `json:"department,omitempty"`
+	Location               string                 `json:"location,omitempty"`
+	SiteName               string                 `json:"site_name,omitempty"`
+	Workstation            string                 `json:"workstation,omitempty"`
+	MailStop               string                 `json:"mail_stop,omitempty"`
+	CompanyAddress         string                 `json:"company_address,omitempty"`
+	StartDate              time.Time              `json:"start_date"`
+	ExpirationDate         time.Time              `json:"expiration_date"`
+	EmployeePhoto          string                 `json:"employee_photo,omitempty"`
+	Temporary              bool                   `json:"temporary,omitempty"`
+	Metadata               map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // UpdateParams defines parameters for updating an existing card
@@ -242,12 +253,12 @@ type LedgerItemPassTemplate struct {
 
 // LedgerItemAccessPass represents an access pass reference within a ledger item
 type LedgerItemAccessPass struct {
-	ID                     string                  `json:"id"`
-	FullName               string                  `json:"full_name"`
-	State                  string                  `json:"state"`
-	Metadata               map[string]interface{}  `json:"metadata"`
-	UnifiedAccessPassExID  string                  `json:"unified_access_pass_ex_id"`
-	PassTemplate           *LedgerItemPassTemplate `json:"pass_template,omitempty"`
+	ID                    string                  `json:"id"`
+	FullName              string                  `json:"full_name"`
+	State                 string                  `json:"state"`
+	Metadata              map[string]interface{}  `json:"metadata"`
+	UnifiedAccessPassExID string                  `json:"unified_access_pass_ex_id"`
+	PassTemplate          *LedgerItemPassTemplate `json:"pass_template,omitempty"`
 }
 
 // LedgerItem represents a billing ledger item
@@ -341,4 +352,63 @@ type CreateHIDOrgParams struct {
 type CompleteHIDOrgParams struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// LandingPage represents a landing page configuration
+type LandingPage struct {
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	Kind              string `json:"kind"`
+	CreatedAt         string `json:"created_at"`
+	PasswordProtected bool   `json:"password_protected"`
+	LogoURL           string `json:"logo_url,omitempty"`
+}
+
+// CreateLandingPageParams defines parameters for creating a landing page
+type CreateLandingPageParams struct {
+	Name                   string `json:"name"`
+	Kind                   string `json:"kind"`
+	AdditionalText         string `json:"additional_text,omitempty"`
+	BgColor                string `json:"bg_color,omitempty"`
+	AllowImmediateDownload bool   `json:"allow_immediate_download,omitempty"`
+	Password               string `json:"password,omitempty"`
+	Is2FAEnabled           bool   `json:"is_2fa_enabled,omitempty"`
+	Logo                   string `json:"logo,omitempty"`
+}
+
+// UpdateLandingPageParams defines parameters for updating a landing page
+type UpdateLandingPageParams struct {
+	LandingPageID          string `json:"landing_page_id"`
+	Name                   string `json:"name,omitempty"`
+	AdditionalText         string `json:"additional_text,omitempty"`
+	BgColor                string `json:"bg_color,omitempty"`
+	AllowImmediateDownload *bool  `json:"allow_immediate_download,omitempty"`
+	Password               string `json:"password,omitempty"`
+	Is2FAEnabled           *bool  `json:"is_2fa_enabled,omitempty"`
+	Logo                   string `json:"logo,omitempty"`
+}
+
+// CredentialProfile represents a credential profile
+type CredentialProfile struct {
+	ID          string                 `json:"id"`
+	AID         string                 `json:"aid"`
+	Name        string                 `json:"name"`
+	AppleID     string                 `json:"apple_id,omitempty"`
+	CreatedAt   string                 `json:"created_at"`
+	CardStorage map[string]interface{} `json:"card_storage,omitempty"`
+	Keys        []interface{}          `json:"keys,omitempty"`
+	Files       []interface{}          `json:"files,omitempty"`
+}
+
+// KeyParam represents a key parameter for credential profile creation
+type KeyParam struct {
+	Value string `json:"value"`
+}
+
+// CreateCredentialProfileParams defines parameters for creating a credential profile
+type CreateCredentialProfileParams struct {
+	Name    string     `json:"name"`
+	AppName string     `json:"app_name"`
+	Keys    []KeyParam `json:"keys,omitempty"`
+	FileID  string     `json:"file_id,omitempty"`
 }
