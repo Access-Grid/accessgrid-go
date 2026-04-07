@@ -136,24 +136,43 @@ type SupportInfo struct {
 
 // CreateTemplateParams defines parameters for creating a new template
 type CreateTemplateParams struct {
-	Name        string         `json:"name"`
-	Platform    string         `json:"platform"`
-	UseCase     string         `json:"use_case"`
-	Protocol    string         `json:"protocol"`
-	WatchCount  int            `json:"watch_count"`
-	IPhoneCount int            `json:"iphone_count"`
-	Design      TemplateDesign `json:"design"`
-	SupportInfo SupportInfo    `json:"support_info"`
+	Name                   string                 `json:"name"`
+	Platform               string                 `json:"platform"`
+	UseCase                string                 `json:"use_case"`
+	Protocol               string                 `json:"protocol"`
+	AllowOnMultipleDevices bool                   `json:"allow_on_multiple_devices,omitempty"`
+	WatchCount             int                    `json:"watch_count"`
+	IPhoneCount            int                    `json:"iphone_count"`
+	BackgroundColor        string                 `json:"background_color,omitempty"`
+	LabelColor             string                 `json:"label_color,omitempty"`
+	LabelSecondaryColor    string                 `json:"label_secondary_color,omitempty"`
+	BackgroundImage        string                 `json:"background_image,omitempty"`
+	LogoImage              string                 `json:"logo_image,omitempty"`
+	IconImage              string                 `json:"icon_image,omitempty"`
+	SupportURL             string                 `json:"support_url,omitempty"`
+	SupportPhoneNumber     string                 `json:"support_phone_number,omitempty"`
+	SupportEmail           string                 `json:"support_email,omitempty"`
+	PrivacyPolicyURL       string                 `json:"privacy_policy_url,omitempty"`
+	TermsAndConditionsURL  string                 `json:"terms_and_conditions_url,omitempty"`
+	Metadata               map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // UpdateTemplateParams defines parameters for updating an existing template
 type UpdateTemplateParams struct {
-	CardTemplateID string          `json:"card_template_id"`
-	Name           string          `json:"name,omitempty"`
-	WatchCount     int             `json:"watch_count,omitempty"`
-	IPhoneCount    int             `json:"iphone_count,omitempty"`
-	Design         *TemplateDesign `json:"design,omitempty"`
-	SupportInfo    *SupportInfo    `json:"support_info,omitempty"`
+	CardTemplateID         string                 `json:"card_template_id"`
+	Name                   string                 `json:"name,omitempty"`
+	AllowOnMultipleDevices *bool                  `json:"allow_on_multiple_devices,omitempty"`
+	WatchCount             int                    `json:"watch_count,omitempty"`
+	IPhoneCount            int                    `json:"iphone_count,omitempty"`
+	BackgroundColor        string                 `json:"background_color,omitempty"`
+	LabelColor             string                 `json:"label_color,omitempty"`
+	LabelSecondaryColor    string                 `json:"label_secondary_color,omitempty"`
+	SupportURL             string                 `json:"support_url,omitempty"`
+	SupportPhoneNumber     string                 `json:"support_phone_number,omitempty"`
+	SupportEmail           string                 `json:"support_email,omitempty"`
+	PrivacyPolicyURL       string                 `json:"privacy_policy_url,omitempty"`
+	TermsAndConditionsURL  string                 `json:"terms_and_conditions_url,omitempty"`
+	Metadata               map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // EventLogFilters defines parameters for filtering event logs
@@ -253,4 +272,73 @@ type ListLedgerItemsParams struct {
 	PerPage   int        `json:"per_page,omitempty"`
 	StartDate *time.Time `json:"start_date,omitempty"`
 	EndDate   *time.Time `json:"end_date,omitempty"`
+}
+
+// IosPreflight represents an iOS In-App Provisioning preflight response
+type IosPreflight struct {
+	ProvisioningCredentialIdentifier string `json:"provisioningCredentialIdentifier"`
+	SharingInstanceIdentifier        string `json:"sharingInstanceIdentifier"`
+	CardTemplateIdentifier           string `json:"cardTemplateIdentifier"`
+	EnvironmentIdentifier            string `json:"environmentIdentifier"`
+}
+
+// IosPreflightParams defines parameters for iOS preflight
+type IosPreflightParams struct {
+	CardTemplateID string `json:"card_template_id"`
+	AccessPassExID string `json:"access_pass_ex_id"`
+}
+
+// Webhook represents a webhook configuration
+type Webhook struct {
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	URL              string   `json:"url"`
+	AuthMethod       string   `json:"auth_method"`
+	SubscribedEvents []string `json:"subscribed_events"`
+	CreatedAt        string   `json:"created_at"`
+	PrivateKey       string   `json:"private_key,omitempty"`
+	ClientCert       string   `json:"client_cert,omitempty"`
+	CertExpiresAt    string   `json:"cert_expires_at,omitempty"`
+}
+
+// WebhooksResponse represents the response from listing webhooks
+type WebhooksResponse struct {
+	Webhooks   []Webhook  `json:"webhooks"`
+	Pagination Pagination `json:"pagination"`
+}
+
+// CreateWebhookParams defines parameters for creating a webhook
+type CreateWebhookParams struct {
+	Name             string   `json:"name"`
+	URL              string   `json:"url"`
+	SubscribedEvents []string `json:"subscribed_events"`
+	AuthMethod       string   `json:"auth_method,omitempty"`
+}
+
+// HIDOrg represents an HID organization
+type HIDOrg struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Phone       string `json:"phone"`
+	FullAddress string `json:"full_address"`
+	Status      string `json:"status"`
+	CreatedAt   string `json:"created_at"`
+}
+
+// CreateHIDOrgParams defines parameters for creating an HID organization
+type CreateHIDOrgParams struct {
+	Name        string `json:"name"`
+	FullAddress string `json:"full_address"`
+	Phone       string `json:"phone"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+}
+
+// CompleteHIDOrgParams defines parameters for completing HID org registration
+type CompleteHIDOrgParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

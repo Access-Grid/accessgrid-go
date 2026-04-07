@@ -13,12 +13,125 @@ import (
 
 // ConsoleService handles operations related to the enterprise console
 type ConsoleService struct {
-	client *client.Client
+	client   *client.Client
+	HID      *HIDService
+	Webhooks *WebhooksService
 }
 
 // NewConsoleService creates a new ConsoleService
-func NewConsoleService(client *client.Client) *ConsoleService {
-	return &ConsoleService{client: client}
+func NewConsoleService(c *client.Client) *ConsoleService {
+	return &ConsoleService{
+		client:   c,
+		HID:      NewHIDService(c),
+		Webhooks: NewWebhooksService(c),
+	}
+}
+
+// IosPreflight retrieves iOS In-App Provisioning identifiers
+func (s *ConsoleService) IosPreflight(ctx context.Context, params models.IosPreflightParams) (*models.IosPreflight, error) {
+	var result models.IosPreflight
+	path := fmt.Sprintf("/v1/console/card-templates/%s/ios_preflight", url.PathEscape(params.CardTemplateID))
+	body := map[string]string{"access_pass_ex_id": params.AccessPassExID}
+	err := s.client.Request(ctx, http.MethodPost, path, body, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching iOS preflight: %w", err)
+	}
+	return &result, nil
+}
+
+// WebhooksService handles webhook operations
+type WebhooksService struct {
+	client *client.Client
+}
+
+// NewWebhooksService creates a new WebhooksService
+func NewWebhooksService(c *client.Client) *WebhooksService {
+	return &WebhooksService{client: c}
+}
+
+// Create creates a new webhook
+func (s *WebhooksService) Create(ctx context.Context, params models.CreateWebhookParams) (*models.Webhook, error) {
+	if params.AuthMethod == "" {
+		params.AuthMethod = "bearer_token"
+	}
+	var webhook models.Webhook
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/webhooks", params, &webhook)
+	if err != nil {
+		return nil, fmt.Errorf("error creating webhook: %w", err)
+	}
+	return &webhook, nil
+}
+
+// List retrieves all webhooks
+func (s *WebhooksService) List(ctx context.Context) (*models.WebhooksResponse, error) {
+	var response models.WebhooksResponse
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/webhooks", nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error listing webhooks: %w", err)
+	}
+	return &response, nil
+}
+
+// Delete deletes a webhook by ID
+func (s *WebhooksService) Delete(ctx context.Context, webhookID string) error {
+	path := fmt.Sprintf("/v1/console/webhooks/%s", url.PathEscape(webhookID))
+	err := s.client.Request(ctx, http.MethodDelete, path, nil, nil)
+	if err != nil {
+		return fmt.Errorf("error deleting webhook: %w", err)
+	}
+	return nil
+}
+
+// HIDService provides access to HID-related services
+type HIDService struct {
+	Orgs *HIDOrgsService
+}
+
+// NewHIDService creates a new HIDService
+func NewHIDService(c *client.Client) *HIDService {
+	return &HIDService{
+		Orgs: NewHIDOrgsService(c),
+	}
+}
+
+// HIDOrgsService handles HID organization operations
+type HIDOrgsService struct {
+	client *client.Client
+}
+
+// NewHIDOrgsService creates a new HIDOrgsService
+func NewHIDOrgsService(c *client.Client) *HIDOrgsService {
+	return &HIDOrgsService{client: c}
+}
+
+// Create creates a new HID organization
+func (s *HIDOrgsService) Create(ctx context.Context, params *models.CreateHIDOrgParams) (*models.HIDOrg, error) {
+	var org models.HIDOrg
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/hid/orgs", params, &org)
+	if err != nil {
+		return nil, fmt.Errorf("error creating HID org: %w", err)
+	}
+	return &org, nil
+}
+
+// List retrieves all HID organizations
+func (s *HIDOrgsService) List(ctx context.Context) ([]models.HIDOrg, error) {
+	var orgs []models.HIDOrg
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/hid/orgs", nil, &orgs)
+	if err != nil {
+		return nil, fmt.Errorf("error listing HID orgs: %w", err)
+	}
+	return orgs, nil
+}
+
+// Activate completes HID org registration with credentials
+func (s *HIDOrgsService) Activate(ctx context.Context, params *models.CompleteHIDOrgParams) (*models.HIDOrg, error) {
+	var org models.HIDOrg
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/hid/orgs/activate", params, &org)
+	if err != nil {
+		return nil, fmt.Errorf("error activating HID org: %w", err)
+	}
+	return &org, nil
 }
 
 // CreateTemplate creates a new card template

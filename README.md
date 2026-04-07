@@ -271,33 +271,26 @@ func main() {
        return
    }
 
-   design := accessgrid.TemplateDesign{
-       BackgroundColor:     "#FFFFFF",
-       LabelColor:         "#000000",
-       LabelSecondaryColor: "#333333",
-       BackgroundImage:     "[image_in_base64_encoded_format]",
-       LogoImage:          "[image_in_base64_encoded_format]",
-       IconImage:          "[image_in_base64_encoded_format]",
-   }
-
-   supportInfo := accessgrid.SupportInfo{
-       SupportURL:           "https://help.yourcompany.com",
-       SupportPhoneNumber:   "+1-555-123-4567",
-       SupportEmail:         "support@yourcompany.com",
-       PrivacyPolicyURL:     "https://yourcompany.com/privacy",
-       TermsAndConditionsURL: "https://yourcompany.com/terms",
-   }
-
    params := accessgrid.CreateTemplateParams{
-       Name:                 "Employee NFC key",
-       Platform:            "apple",
-       UseCase:             "employee_badge",
-       Protocol:            "desfire",
+       Name:                   "Employee Access Pass",
+       Platform:               "apple",
+       UseCase:                "employee_badge",
+       Protocol:               "desfire",
        AllowOnMultipleDevices: true,
-       WatchCount:          2,
-       IPhoneCount:         3,
-       Design:              design,
-       SupportInfo:         supportInfo,
+       WatchCount:             2,
+       IPhoneCount:            3,
+       BackgroundColor:        "#FFFFFF",
+       LabelColor:             "#000000",
+       LabelSecondaryColor:    "#333333",
+       SupportURL:             "https://help.yourcompany.com",
+       SupportPhoneNumber:     "+1-555-123-4567",
+       SupportEmail:           "support@yourcompany.com",
+       PrivacyPolicyURL:       "https://yourcompany.com/privacy",
+       TermsAndConditionsURL:  "https://yourcompany.com/terms",
+       Metadata: map[string]interface{}{
+           "version":         "2.1",
+           "approval_status": "approved",
+       },
    }
 
    ctx := context.Background()
@@ -332,21 +325,21 @@ func main() {
        return
    }
 
-   supportInfo := accessgrid.SupportInfo{
-       SupportURL:           "https://help.yourcompany.com",
-       SupportPhoneNumber:   "+1-555-123-4567",
-       SupportEmail:         "support@yourcompany.com",
-       PrivacyPolicyURL:     "https://yourcompany.com/privacy",
-       TermsAndConditionsURL: "https://yourcompany.com/terms",
-   }
-
+   allowMulti := true
    params := accessgrid.UpdateTemplateParams{
-       CardTemplateID:       "0xd3adb00b5",
-       Name:                "Updated Employee NFC key",
-       AllowOnMultipleDevices: true,
-       WatchCount:          2,
-       IPhoneCount:         3,
-       SupportInfo:         supportInfo,
+       CardTemplateID:         "0xd3adb00b5",
+       Name:                   "Updated Employee Access Pass",
+       AllowOnMultipleDevices: &allowMulti,
+       WatchCount:             2,
+       IPhoneCount:            3,
+       BackgroundColor:        "#FFFFFF",
+       LabelColor:             "#000000",
+       LabelSecondaryColor:    "#333333",
+       SupportURL:             "https://help.yourcompany.com",
+       SupportPhoneNumber:     "+1-555-123-4567",
+       SupportEmail:           "support@yourcompany.com",
+       PrivacyPolicyURL:       "https://yourcompany.com/privacy",
+       TermsAndConditionsURL:  "https://yourcompany.com/terms",
    }
 
    ctx := context.Background()
@@ -440,6 +433,60 @@ func main() {
 }
 ```
 
+### HID Organizations
+
+#### Create an HID org
+
+```go
+ctx := context.Background()
+org, err := client.Console.HID.Orgs.Create(ctx, &accessgrid.CreateHIDOrgParams{
+    Name:        "My Org",
+    FullAddress: "1 Main St, NY NY",
+    Phone:       "+1-555-0000",
+    FirstName:   "Ada",
+    LastName:    "Lovelace",
+})
+if err != nil {
+    fmt.Printf("Error creating org: %v\n", err)
+    return
+}
+
+fmt.Printf("Created org: %s (ID: %s)\n", org.Name, org.ID)
+fmt.Printf("Slug: %s\n", org.Slug)
+```
+
+#### List HID orgs
+
+```go
+ctx := context.Background()
+orgs, err := client.Console.HID.Orgs.List(ctx)
+if err != nil {
+    fmt.Printf("Error listing orgs: %v\n", err)
+    return
+}
+
+for _, org := range orgs {
+    fmt.Printf("Org ID: %s, Name: %s, Slug: %s\n", org.ID, org.Name, org.Slug)
+}
+```
+
+#### Activate an HID org
+
+```go
+ctx := context.Background()
+result, err := client.Console.HID.Orgs.Activate(ctx, &accessgrid.CompleteHIDOrgParams{
+    Email:    "admin@example.com",
+    Password: "hid-password-123",
+})
+if err != nil {
+    fmt.Printf("Error completing registration: %v\n", err)
+    return
+}
+
+fmt.Printf("Completed registration for org: %s\n", result.Name)
+fmt.Printf("Status: %s\n", result.Status)
+```
+
 ## Configuration
 
 The SDK can be configured with custom options:
@@ -487,6 +534,32 @@ The SDK automatically handles:
 - HTTPS communication
 
 Never expose your `secretKey` in source code. Always use environment variables or a secure configuration management system.
+
+## Feature Matrix
+
+| Endpoint | Method | Supported |
+|---|---|:---:|
+| POST /v1/key-cards | `AccessCards.Provision()` | Y |
+| GET /v1/key-cards/{id} | `AccessCards.Get()` | Y |
+| PATCH /v1/key-cards/{id} | `AccessCards.Update()` | Y |
+| GET /v1/key-cards | `AccessCards.List()` | Y |
+| POST /v1/key-cards/{id}/suspend | `AccessCards.Suspend()` | Y |
+| POST /v1/key-cards/{id}/resume | `AccessCards.Resume()` | Y |
+| POST /v1/key-cards/{id}/unlink | `AccessCards.Unlink()` | Y |
+| POST /v1/key-cards/{id}/delete | `AccessCards.Delete()` | Y |
+| POST /v1/console/card-templates | `Console.CreateTemplate()` | Y |
+| PUT /v1/console/card-templates/{id} | `Console.UpdateTemplate()` | Y |
+| GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
+| GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
+| GET /v1/console/pass-template-pairs | `Console.ListPassTemplatePairs()` | Y |
+| POST /v1/console/card-templates/{id}/ios_preflight | `Console.IosPreflight()` | Y |
+| GET /v1/console/ledger-items | `Console.ListLedgerItems()` | Y |
+| GET /v1/console/webhooks | `Console.Webhooks.List()` | Y |
+| POST /v1/console/webhooks | `Console.Webhooks.Create()` | Y |
+| DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | Y |
+| POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | Y |
+| POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | Y |
+| GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | Y |
 
 ## License
 
