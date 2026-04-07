@@ -13,17 +13,19 @@ import (
 
 // ConsoleService handles operations related to the enterprise console
 type ConsoleService struct {
-	client   *client.Client
-	HID      *HIDService
-	Webhooks *WebhooksService
+	client             *client.Client
+	HID                *HIDService
+	Webhooks           *WebhooksService
+	CredentialProfiles *CredentialProfilesService
 }
 
 // NewConsoleService creates a new ConsoleService
 func NewConsoleService(c *client.Client) *ConsoleService {
 	return &ConsoleService{
-		client:   c,
-		HID:      NewHIDService(c),
-		Webhooks: NewWebhooksService(c),
+		client:             c,
+		HID:                NewHIDService(c),
+		Webhooks:           NewWebhooksService(c),
+		CredentialProfiles: NewCredentialProfilesService(c),
 	}
 }
 
@@ -238,6 +240,67 @@ func (s *ConsoleService) ListLedgerItems(ctx context.Context, params models.List
 		return nil, fmt.Errorf("error listing ledger items: %w", err)
 	}
 	return &response, nil
+}
+
+// ListLandingPages retrieves all landing pages
+func (s *ConsoleService) ListLandingPages(ctx context.Context) ([]models.LandingPage, error) {
+	var pages []models.LandingPage
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/landing-pages", nil, &pages)
+	if err != nil {
+		return nil, fmt.Errorf("error listing landing pages: %w", err)
+	}
+	return pages, nil
+}
+
+// CreateLandingPage creates a new landing page
+func (s *ConsoleService) CreateLandingPage(ctx context.Context, params models.CreateLandingPageParams) (*models.LandingPage, error) {
+	var page models.LandingPage
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/landing-pages", params, &page)
+	if err != nil {
+		return nil, fmt.Errorf("error creating landing page: %w", err)
+	}
+	return &page, nil
+}
+
+// UpdateLandingPage updates an existing landing page
+func (s *ConsoleService) UpdateLandingPage(ctx context.Context, params models.UpdateLandingPageParams) (*models.LandingPage, error) {
+	var page models.LandingPage
+	path := fmt.Sprintf("/v1/console/landing-pages/%s", url.PathEscape(params.LandingPageID))
+	err := s.client.Request(ctx, http.MethodPut, path, params, &page)
+	if err != nil {
+		return nil, fmt.Errorf("error updating landing page: %w", err)
+	}
+	return &page, nil
+}
+
+// CredentialProfilesService handles credential profile operations
+type CredentialProfilesService struct {
+	client *client.Client
+}
+
+// NewCredentialProfilesService creates a new CredentialProfilesService
+func NewCredentialProfilesService(c *client.Client) *CredentialProfilesService {
+	return &CredentialProfilesService{client: c}
+}
+
+// List retrieves all credential profiles
+func (s *CredentialProfilesService) List(ctx context.Context) ([]models.CredentialProfile, error) {
+	var profiles []models.CredentialProfile
+	err := s.client.Request(ctx, http.MethodGet, "/v1/console/credential-profiles", nil, &profiles)
+	if err != nil {
+		return nil, fmt.Errorf("error listing credential profiles: %w", err)
+	}
+	return profiles, nil
+}
+
+// Create creates a new credential profile
+func (s *CredentialProfilesService) Create(ctx context.Context, params models.CreateCredentialProfileParams) (*models.CredentialProfile, error) {
+	var profile models.CredentialProfile
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/credential-profiles", params, &profile)
+	if err != nil {
+		return nil, fmt.Errorf("error creating credential profile: %w", err)
+	}
+	return &profile, nil
 }
 
 // EventLog retrieves event logs for a specific template

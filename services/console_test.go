@@ -873,6 +873,265 @@ func TestHIDOrgsService_Activate(t *testing.T) {
 	}
 }
 
+// --- Landing Pages ---
+
+func TestConsoleService_ListLandingPages(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/landing-pages" || r.Method != http.MethodGet {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[
+			{
+				"id": "lp_1",
+				"name": "Miami Office",
+				"kind": "universal",
+				"created_at": "2025-01-01T00:00:00Z",
+				"password_protected": false,
+				"logo_url": "https://example.com/logo.png"
+			},
+			{
+				"id": "lp_2",
+				"name": "NYC Office",
+				"kind": "universal",
+				"created_at": "2025-01-02T00:00:00Z",
+				"password_protected": true
+			}
+		]`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	pages, err := service.ListLandingPages(ctx)
+	if err != nil {
+		t.Fatalf("ListLandingPages() error = %v", err)
+	}
+
+	if len(pages) != 2 {
+		t.Fatalf("got %d pages, want 2", len(pages))
+	}
+	if pages[0].ID != "lp_1" {
+		t.Errorf("pages[0].ID = %v, want lp_1", pages[0].ID)
+	}
+	if pages[0].Name != "Miami Office" {
+		t.Errorf("pages[0].Name = %v, want Miami Office", pages[0].Name)
+	}
+	if pages[0].Kind != "universal" {
+		t.Errorf("pages[0].Kind = %v, want universal", pages[0].Kind)
+	}
+	if pages[0].LogoURL != "https://example.com/logo.png" {
+		t.Errorf("pages[0].LogoURL = %v, want https://example.com/logo.png", pages[0].LogoURL)
+	}
+	if pages[1].PasswordProtected != true {
+		t.Errorf("pages[1].PasswordProtected = %v, want true", pages[1].PasswordProtected)
+	}
+}
+
+func TestConsoleService_ListLandingPages_Empty(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	pages, err := service.ListLandingPages(ctx)
+	if err != nil {
+		t.Fatalf("ListLandingPages() error = %v", err)
+	}
+	if len(pages) != 0 {
+		t.Errorf("got %d pages, want 0", len(pages))
+	}
+}
+
+func TestConsoleService_CreateLandingPage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/landing-pages" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{
+			"id": "lp_new",
+			"name": "Miami Office Access Pass",
+			"kind": "universal",
+			"created_at": "2025-06-01T00:00:00Z",
+			"password_protected": false
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	page, err := service.CreateLandingPage(ctx, models.CreateLandingPageParams{
+		Name:                   "Miami Office Access Pass",
+		Kind:                   "universal",
+		AdditionalText:         "Welcome to the Miami Office",
+		BgColor:                "#f1f5f9",
+		AllowImmediateDownload: true,
+	})
+	if err != nil {
+		t.Fatalf("CreateLandingPage() error = %v", err)
+	}
+
+	if page.ID != "lp_new" {
+		t.Errorf("page.ID = %v, want lp_new", page.ID)
+	}
+	if page.Name != "Miami Office Access Pass" {
+		t.Errorf("page.Name = %v, want Miami Office Access Pass", page.Name)
+	}
+	if page.Kind != "universal" {
+		t.Errorf("page.Kind = %v, want universal", page.Kind)
+	}
+}
+
+func TestConsoleService_UpdateLandingPage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/landing-pages/lp_123" || r.Method != http.MethodPut {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "lp_123",
+			"name": "Updated Miami Office",
+			"kind": "universal",
+			"created_at": "2025-06-01T00:00:00Z",
+			"password_protected": false
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	page, err := service.UpdateLandingPage(ctx, models.UpdateLandingPageParams{
+		LandingPageID:  "lp_123",
+		Name:           "Updated Miami Office",
+		AdditionalText: "Welcome! Tap below to get your access pass.",
+		BgColor:        "#e2e8f0",
+	})
+	if err != nil {
+		t.Fatalf("UpdateLandingPage() error = %v", err)
+	}
+
+	if page.ID != "lp_123" {
+		t.Errorf("page.ID = %v, want lp_123", page.ID)
+	}
+	if page.Name != "Updated Miami Office" {
+		t.Errorf("page.Name = %v, want Updated Miami Office", page.Name)
+	}
+}
+
+// --- Credential Profiles ---
+
+func TestCredentialProfilesService_List(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/credential-profiles" || r.Method != http.MethodGet {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[
+			{"id": "cp_1", "name": "Main Office", "aid": "AID001", "created_at": "2025-01-01T00:00:00Z"},
+			{"id": "cp_2", "name": "Branch Office", "aid": "AID002", "created_at": "2025-01-02T00:00:00Z"}
+		]`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewCredentialProfilesService(c)
+
+	ctx := context.Background()
+	profiles, err := service.List(ctx)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(profiles) != 2 {
+		t.Fatalf("got %d profiles, want 2", len(profiles))
+	}
+	if profiles[0].ID != "cp_1" {
+		t.Errorf("profiles[0].ID = %v, want cp_1", profiles[0].ID)
+	}
+	if profiles[0].Name != "Main Office" {
+		t.Errorf("profiles[0].Name = %v, want Main Office", profiles[0].Name)
+	}
+	if profiles[0].AID != "AID001" {
+		t.Errorf("profiles[0].AID = %v, want AID001", profiles[0].AID)
+	}
+}
+
+func TestCredentialProfilesService_List_Empty(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewCredentialProfilesService(c)
+
+	ctx := context.Background()
+	profiles, err := service.List(ctx)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if len(profiles) != 0 {
+		t.Errorf("got %d profiles, want 0", len(profiles))
+	}
+}
+
+func TestCredentialProfilesService_Create(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/console/credential-profiles" || r.Method != http.MethodPost {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{
+			"id": "cp_new",
+			"name": "Main Office Profile",
+			"aid": "AID_NEW",
+			"created_at": "2025-06-01T00:00:00Z"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewCredentialProfilesService(c)
+
+	ctx := context.Background()
+	profile, err := service.Create(ctx, models.CreateCredentialProfileParams{
+		Name:    "Main Office Profile",
+		AppName: "KEY-ID-main",
+		Keys: []models.KeyParam{
+			{Value: "your_32_char_hex_master_key_here"},
+			{Value: "your_32_char_hex__read_key__here"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+
+	if profile.ID != "cp_new" {
+		t.Errorf("profile.ID = %v, want cp_new", profile.ID)
+	}
+	if profile.Name != "Main Office Profile" {
+		t.Errorf("profile.Name = %v, want Main Office Profile", profile.Name)
+	}
+	if profile.AID != "AID_NEW" {
+		t.Errorf("profile.AID = %v, want AID_NEW", profile.AID)
+	}
+}
+
 func TestConsoleService_ErrorPropagation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
