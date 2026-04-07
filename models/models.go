@@ -98,6 +98,13 @@ type UpdateParams struct {
 	Email          string     `json:"email,omitempty"`
 	PhoneNumber    string     `json:"phone_number,omitempty"`
 	Classification string     `json:"classification,omitempty"`
+	Title          string     `json:"title,omitempty"`
+	Department     string     `json:"department,omitempty"`
+	Location       string     `json:"location,omitempty"`
+	SiteName       string     `json:"site_name,omitempty"`
+	Workstation    string     `json:"workstation,omitempty"`
+	MailStop       string     `json:"mail_stop,omitempty"`
+	CompanyAddress string     `json:"company_address,omitempty"`
 	ExpirationDate *time.Time `json:"expiration_date,omitempty"`
 	EmployeePhoto  string     `json:"employee_photo,omitempty"`
 }
