@@ -40,7 +40,7 @@ func main() {
 ```go
 package main
 
-import (\n    "context"
+import (
     "context"
     "fmt"
     "os"
@@ -59,17 +59,28 @@ func main() {
     }
 
     params := accessgrid.ProvisionParams{
-        CardTemplateID:          "0xd3adb00b5",
+        CardTemplateID:         "0xd3adb00b5",
         EmployeeID:             "123456789",
-        CardNumber:             "14563",
-        SiteCode:               "42",
-        FullName:              "Employee name",
-        Email:                 "employee@yourwebsite.com",
-        PhoneNumber:           "+19547212241",
-        Classification:        "full_time",
-        StartDate:            time.Now().UTC(),
-        ExpirationDate:       time.Now().UTC().AddDate(1, 0, 0),
-        EmployeePhoto:        "[image_in_base64_encoded_format]",
+        TagID:                  "DDEADB33FB00B5",
+        AllowOnMultipleDevices: true,
+        FullName:               "Employee name",
+        Email:                  "employee@yourwebsite.com",
+        PhoneNumber:            "+19547212241",
+        Classification:         "full_time",
+        Department:             "Engineering",
+        Location:               "San Francisco",
+        SiteName:               "HQ Building A",
+        Workstation:            "4F-207",
+        MailStop:               "MS-401",
+        CompanyAddress:         "123 Main St, San Francisco, CA 94105",
+        StartDate:              time.Now().UTC(),
+        ExpirationDate:         time.Now().UTC().AddDate(0, 3, 0),
+        EmployeePhoto:          "[image_in_base64_encoded_format]",
+        Title:                  "Engineering Manager",
+        Metadata: map[string]interface{}{
+            "department": "engineering",
+            "badge_type": "contractor",
+        },
     }
 
     ctx := context.Background()
@@ -487,6 +498,110 @@ fmt.Printf("Completed registration for org: %s\n", result.Name)
 fmt.Printf("Status: %s\n", result.Status)
 ```
 
+### Landing Pages
+
+#### List landing pages
+
+```go
+ctx := context.Background()
+landingPages, err := client.Console.ListLandingPages(ctx)
+if err != nil {
+    fmt.Printf("Error listing landing pages: %v\n", err)
+    return
+}
+
+for _, page := range landingPages {
+    fmt.Printf("ID: %s, Name: %s, Kind: %s\n", page.ID, page.Name, page.Kind)
+    fmt.Printf("  Password Protected: %v\n", page.PasswordProtected)
+    if page.LogoURL != "" {
+        fmt.Printf("  Logo URL: %s\n", page.LogoURL)
+    }
+}
+```
+
+#### Create a landing page
+
+```go
+ctx := context.Background()
+params := accessgrid.CreateLandingPageParams{
+    Name:                   "Miami Office Access Pass",
+    Kind:                   "universal",
+    AdditionalText:         "Welcome to the Miami Office",
+    BgColor:                "#f1f5f9",
+    AllowImmediateDownload: true,
+}
+
+landingPage, err := client.Console.CreateLandingPage(ctx, params)
+if err != nil {
+    fmt.Printf("Error creating landing page: %v\n", err)
+    return
+}
+
+fmt.Printf("Landing page created: %s\n", landingPage.ID)
+fmt.Printf("Name: %s, Kind: %s\n", landingPage.Name, landingPage.Kind)
+```
+
+#### Update a landing page
+
+```go
+ctx := context.Background()
+params := accessgrid.UpdateLandingPageParams{
+    LandingPageID:  "0xlandingpage1d",
+    Name:           "Updated Miami Office Access Pass",
+    AdditionalText: "Welcome! Tap below to get your access pass.",
+    BgColor:        "#e2e8f0",
+}
+
+landingPage, err := client.Console.UpdateLandingPage(ctx, params)
+if err != nil {
+    fmt.Printf("Error updating landing page: %v\n", err)
+    return
+}
+
+fmt.Printf("Landing page updated: %s\n", landingPage.ID)
+fmt.Printf("Name: %s\n", landingPage.Name)
+```
+
+### Credential Profiles
+
+#### List credential profiles
+
+```go
+ctx := context.Background()
+profiles, err := client.Console.CredentialProfiles.List(ctx)
+if err != nil {
+    fmt.Printf("Error listing credential profiles: %v\n", err)
+    return
+}
+
+for _, profile := range profiles {
+    fmt.Printf("ID: %s, Name: %s, AID: %s\n", profile.ID, profile.Name, profile.AID)
+}
+```
+
+#### Create a credential profile
+
+```go
+ctx := context.Background()
+params := accessgrid.CreateCredentialProfileParams{
+    Name:    "Main Office Profile",
+    AppName: "KEY-ID-main",
+    Keys: []accessgrid.KeyParam{
+        {Value: "your_32_char_hex_master_key_here"},
+        {Value: "your_32_char_hex__read_key__here"},
+    },
+}
+
+profile, err := client.Console.CredentialProfiles.Create(ctx, params)
+if err != nil {
+    fmt.Printf("Error creating credential profile: %v\n", err)
+    return
+}
+
+fmt.Printf("Profile created: %s\n", profile.ID)
+fmt.Printf("AID: %s\n", profile.AID)
+```
+
 ## Configuration
 
 The SDK can be configured with custom options:
@@ -557,6 +672,11 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | GET /v1/console/webhooks | `Console.Webhooks.List()` | Y |
 | POST /v1/console/webhooks | `Console.Webhooks.Create()` | Y |
 | DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | Y |
+| GET /v1/console/landing-pages | `Console.ListLandingPages()` | Y |
+| POST /v1/console/landing-pages | `Console.CreateLandingPage()` | Y |
+| PUT /v1/console/landing-pages/{id} | `Console.UpdateLandingPage()` | Y |
+| GET /v1/console/credential-profiles | `Console.CredentialProfiles.List()` | Y |
+| POST /v1/console/credential-profiles | `Console.CredentialProfiles.Create()` | Y |
 | POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | Y |
 | POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | Y |
 | GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | Y |

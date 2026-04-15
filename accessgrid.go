@@ -134,4 +134,22 @@ type (
 
 	// CompleteHIDOrgParams defines parameters for completing HID org registration
 	CompleteHIDOrgParams = models.CompleteHIDOrgParams
+
+	// LandingPage represents a landing page configuration
+	LandingPage = models.LandingPage
+
+	// CreateLandingPageParams defines parameters for creating a landing page
+	CreateLandingPageParams = models.CreateLandingPageParams
+
+	// UpdateLandingPageParams defines parameters for updating a landing page
+	UpdateLandingPageParams = models.UpdateLandingPageParams
+
+	// CredentialProfile represents a credential profile
+	CredentialProfile = models.CredentialProfile
+
+	// KeyParam represents a key parameter for credential profile creation
+	KeyParam = models.KeyParam
+
+	// CreateCredentialProfileParams defines parameters for creating a credential profile
+	CreateCredentialProfileParams = models.CreateCredentialProfileParams
 )
