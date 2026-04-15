@@ -96,6 +96,9 @@ type (
 	// ListPassTemplatePairsParams defines parameters for listing pass template pairs
 	ListPassTemplatePairsParams = models.ListPassTemplatePairsParams
 
+	// CreatePassTemplatePairParams defines parameters for creating a pass template pair
+	CreatePassTemplatePairParams = models.CreatePassTemplatePairParams
+
 	// LedgerItemPassTemplate represents a pass template reference within a ledger item's access pass
 	LedgerItemPassTemplate = models.LedgerItemPassTemplate
 
