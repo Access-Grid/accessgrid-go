@@ -224,6 +224,7 @@ type Pagination struct {
 // TemplateInfo represents minimal template info within a PassTemplatePair
 type TemplateInfo struct {
 	ID       string `json:"id"`
+	ExID     string `json:"ex_id"`
 	Name     string `json:"name"`
 	Platform string `json:"platform"`
 }
@@ -231,15 +232,18 @@ type TemplateInfo struct {
 // PassTemplatePair represents a paired iOS and Android template configuration
 type PassTemplatePair struct {
 	ID              string        `json:"id"`
+	ExID            string        `json:"ex_id"`
 	Name            string        `json:"name"`
 	CreatedAt       time.Time     `json:"created_at"`
 	IOSTemplate     *TemplateInfo `json:"ios_template"`
 	AndroidTemplate *TemplateInfo `json:"android_template"`
 }
 
-// PassTemplatePairsResponse represents the response from listing pass template pairs
+// PassTemplatePairsResponse represents the response from listing pass template pairs.
+// The upstream JSON key is "card_template_pairs"; the Go field name is preserved
+// for backward compatibility.
 type PassTemplatePairsResponse struct {
-	PassTemplatePairs []PassTemplatePair `json:"pass_template_pairs"`
+	PassTemplatePairs []PassTemplatePair `json:"card_template_pairs"`
 	Pagination        Pagination         `json:"pagination"`
 }
 
@@ -247,6 +251,16 @@ type PassTemplatePairsResponse struct {
 type ListPassTemplatePairsParams struct {
 	Page    int `json:"page,omitempty"`
 	PerPage int `json:"per_page,omitempty"`
+}
+
+// CreatePassTemplatePairParams defines parameters for creating a pass template pair.
+// Both referenced card templates must be published (status: ready) and use the same
+// protocol. AppleCardTemplateID must reference an Apple (iOS) template and
+// GoogleCardTemplateID must reference a Google (Android) template.
+type CreatePassTemplatePairParams struct {
+	Name                 string `json:"name"`
+	AppleCardTemplateID  string `json:"apple_card_template_id"`
+	GoogleCardTemplateID string `json:"google_card_template_id"`
 }
 
 // LedgerItemPassTemplate represents a pass template reference within a ledger item's access pass

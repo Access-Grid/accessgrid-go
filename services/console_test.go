@@ -78,21 +78,35 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"timestamp": "2023-01-01T12:00:00Z"
 				}
 			]`))
-		case "/v1/console/pass-template-pairs":
+		case "/v1/console/card-template-pairs":
+			if r.Method == http.MethodPost {
+				w.WriteHeader(http.StatusCreated)
+				w.Write([]byte(`{
+					"id": "pair_new",
+					"ex_id": "pair_new",
+					"name": "New Badge Pair",
+					"created_at": "2026-04-15T12:00:00Z",
+					"ios_template": {"id": "tmpl_ios", "ex_id": "tmpl_ios", "name": "iOS Badge", "platform": "apple"},
+					"android_template": {"id": "tmpl_android", "ex_id": "tmpl_android", "name": "Android Badge", "platform": "android"}
+				}`))
+				return
+			}
 			w.Write([]byte(`{
-				"pass_template_pairs": [
+				"card_template_pairs": [
 					{
 						"id": "pair_1",
+						"ex_id": "pair_1",
 						"name": "Employee Badge Pair",
 						"created_at": "2025-01-01T00:00:00Z",
-						"ios_template": {"id": "tmpl_ios_1", "name": "iOS Badge", "platform": "apple"},
-						"android_template": {"id": "tmpl_android_1", "name": "Android Badge", "platform": "android"}
+						"ios_template": {"id": "tmpl_ios_1", "ex_id": "tmpl_ios_1", "name": "iOS Badge", "platform": "apple"},
+						"android_template": {"id": "tmpl_android_1", "ex_id": "tmpl_android_1", "name": "Android Badge", "platform": "android"}
 					},
 					{
 						"id": "pair_2",
+						"ex_id": "pair_2",
 						"name": "Contractor Badge Pair",
 						"created_at": "2025-01-02T00:00:00Z",
-						"ios_template": {"id": "tmpl_ios_2", "name": "iOS Contractor", "platform": "apple"},
+						"ios_template": {"id": "tmpl_ios_2", "ex_id": "tmpl_ios_2", "name": "iOS Contractor", "platform": "apple"},
 						"android_template": null
 					}
 				],
@@ -381,7 +395,7 @@ func TestConsoleService_ListPassTemplatePairs_WithPagination(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		capturedURL = r.URL.String()
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"pass_template_pairs": [], "pagination": {"current_page": 2, "total_pages": 5}}`))
+		w.Write([]byte(`{"card_template_pairs": [], "pagination": {"current_page": 2, "total_pages": 5}}`))
 	}))
 	defer server.Close()
 
@@ -412,6 +426,43 @@ func TestConsoleService_ListPassTemplatePairs_WithPagination(t *testing.T) {
 	}
 	if !strings.Contains(capturedURL, "per_page=10") {
 		t.Errorf("expected per_page=10 in URL, got %s", capturedURL)
+	}
+	if !strings.Contains(capturedURL, "/v1/console/card-template-pairs") {
+		t.Errorf("expected path /v1/console/card-template-pairs, got %s", capturedURL)
+	}
+}
+
+func TestConsoleService_CreatePassTemplatePair(t *testing.T) {
+	server, service := setupConsoleTestServer()
+	defer server.Close()
+
+	ctx := context.Background()
+	pair, err := service.CreatePassTemplatePair(ctx, models.CreatePassTemplatePairParams{
+		Name:                 "New Badge Pair",
+		AppleCardTemplateID:  "tmpl_ios",
+		GoogleCardTemplateID: "tmpl_android",
+	})
+	if err != nil {
+		t.Fatalf("CreatePassTemplatePair() error = %v", err)
+	}
+
+	if pair.ID != "pair_new" {
+		t.Errorf("pair.ID = %v, want pair_new", pair.ID)
+	}
+	if pair.ExID != "pair_new" {
+		t.Errorf("pair.ExID = %v, want pair_new", pair.ExID)
+	}
+	if pair.Name != "New Badge Pair" {
+		t.Errorf("pair.Name = %v, want New Badge Pair", pair.Name)
+	}
+	if pair.IOSTemplate == nil || pair.IOSTemplate.Platform != "apple" {
+		t.Errorf("pair.IOSTemplate = %+v, want apple platform", pair.IOSTemplate)
+	}
+	if pair.AndroidTemplate == nil || pair.AndroidTemplate.Platform != "android" {
+		t.Errorf("pair.AndroidTemplate = %+v, want android platform", pair.AndroidTemplate)
+	}
+	if pair.IOSTemplate.ExID != "tmpl_ios" {
+		t.Errorf("pair.IOSTemplate.ExID = %v, want tmpl_ios", pair.IOSTemplate.ExID)
 	}
 }
 
