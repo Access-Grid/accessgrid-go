@@ -200,7 +200,7 @@ func (s *ConsoleService) ListPassTemplatePairs(ctx context.Context, params model
 		query.Add("per_page", fmt.Sprintf("%d", params.PerPage))
 	}
 
-	u := url.URL{Path: "/v1/console/pass-template-pairs"}
+	u := url.URL{Path: "/v1/console/card-template-pairs"}
 	if len(query) > 0 {
 		u.RawQuery = query.Encode()
 	}
@@ -208,6 +208,18 @@ func (s *ConsoleService) ListPassTemplatePairs(ctx context.Context, params model
 	err := s.client.Request(ctx, http.MethodGet, u.String(), nil, &response)
 	if err != nil {
 		return nil, fmt.Errorf("error listing pass template pairs: %w", err)
+	}
+	return &response, nil
+}
+
+// CreatePassTemplatePair creates a new pass template pair linking an Apple (iOS)
+// and Google (Android) card template. Both templates must be published
+// (status: ready) and use the same protocol.
+func (s *ConsoleService) CreatePassTemplatePair(ctx context.Context, params models.CreatePassTemplatePairParams) (*models.PassTemplatePair, error) {
+	var response models.PassTemplatePair
+	err := s.client.Request(ctx, http.MethodPost, "/v1/console/card-template-pairs", params, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error creating pass template pair: %w", err)
 	}
 	return &response, nil
 }

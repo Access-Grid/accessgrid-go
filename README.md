@@ -666,7 +666,8 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | PUT /v1/console/card-templates/{id} | `Console.UpdateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
-| GET /v1/console/pass-template-pairs | `Console.ListPassTemplatePairs()` | Y |
+| GET /v1/console/card-template-pairs | `Console.ListPassTemplatePairs()` | Y |
+| POST /v1/console/card-template-pairs | `Console.CreatePassTemplatePair()` | Y |
 | POST /v1/console/card-templates/{id}/ios_preflight | `Console.IosPreflight()` | Y |
 | GET /v1/console/ledger-items | `Console.ListLedgerItems()` | Y |
 | GET /v1/console/webhooks | `Console.Webhooks.List()` | Y |
