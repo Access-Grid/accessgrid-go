@@ -20,3 +20,6 @@ vendor/
 *.swp
 *.swo
 .DS_Store
+
+# Test scripts
+scripts/

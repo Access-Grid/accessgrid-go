@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -88,29 +90,53 @@ func NewClient(accountID, secretKey string, options ...Option) (*Client, error) 
 
 // Request makes an authenticated API request
 func (c *Client) Request(ctx context.Context, method, path string, body interface{}, result interface{}) error {
-	url := fmt.Sprintf("%s%s", c.BaseURL, path)
+	reqURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 
 	var reqBody []byte
+	var sigPayload string
 	var err error
-	if body != nil {
+
+	needsSigPayload := (method == http.MethodGet || method == http.MethodDelete) && body == nil
+
+	if needsSigPayload {
+		// For GET/DELETE without body, extract resource ID from path and build sig_payload
+		sigPayload = buildSigPayload(path)
+
+		// Add sig_payload as query parameter
+		parsed, err := url.Parse(reqURL)
+		if err != nil {
+			return fmt.Errorf("error parsing URL: %w", err)
+		}
+		q := parsed.Query()
+		q.Set("sig_payload", sigPayload)
+		parsed.RawQuery = q.Encode()
+		reqURL = parsed.String()
+	} else if body != nil {
 		reqBody, err = json.Marshal(body)
 		if err != nil {
 			return fmt.Errorf("error marshaling request body: %w", err)
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, method, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
 
-	// Set headers to match Python SDK
+	// Set headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-ACCT-ID", c.AccountID)
 	req.Header.Set("User-Agent", fmt.Sprintf("accessgrid.go @ v%s", version))
 
-	// Generate signature
-	signature, err := c.signRequest(reqBody)
+	// Generate signature from sig_payload (GET/DELETE) or request body (POST/PUT/PATCH)
+	var signData []byte
+	if needsSigPayload {
+		signData = []byte(sigPayload)
+	} else {
+		signData = reqBody
+	}
+
+	signature, err := c.signRequest(signData)
 	if err != nil {
 		return fmt.Errorf("error signing request: %w", err)
 	}
@@ -193,4 +219,31 @@ func (c *Client) signRequest(payload []byte) (string, error) {
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
+// buildSigPayload extracts the resource ID from the URL path and builds a sig_payload JSON string.
+// For action paths like /v1/key-cards/{id}/suspend, it uses the card ID (second-to-last segment).
+// For standard paths like /v1/key-cards/{id}, it uses the last segment.
+func buildSigPayload(path string) string {
+	// Strip query string if present
+	if idx := strings.Index(path, "?"); idx >= 0 {
+		path = path[:idx]
+	}
+
+	parts := strings.Split(strings.TrimRight(path, "/"), "/")
+	if len(parts) < 2 {
+		return "{}"
+	}
+
+	lastPart := parts[len(parts)-1]
+	actions := map[string]bool{"suspend": true, "resume": true, "unlink": true, "delete": true}
+
+	var resourceID string
+	if actions[lastPart] {
+		resourceID = parts[len(parts)-2]
+	} else {
+		resourceID = lastPart
+	}
+
+	return fmt.Sprintf(`{"id":"%s"}`, resourceID)
 }

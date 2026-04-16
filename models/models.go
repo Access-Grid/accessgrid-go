@@ -172,6 +172,7 @@ type CreateTemplateParams struct {
 	SupportEmail           string                 `json:"support_email,omitempty"`
 	PrivacyPolicyURL       string                 `json:"privacy_policy_url,omitempty"`
 	TermsAndConditionsURL  string                 `json:"terms_and_conditions_url,omitempty"`
+	Logo                   string                 `json:"logo,omitempty"`
 	Metadata               map[string]interface{} `json:"metadata,omitempty"`
 }
 
@@ -203,14 +204,19 @@ type EventLogFilters struct {
 
 // Event represents an event in the event log
 type Event struct {
-	ID         string    `json:"id"`
-	Type       string    `json:"type"`
-	UserID     string    `json:"user_id"`
-	CardID     string    `json:"card_id"`
-	TemplateID string    `json:"template_id"`
-	Device     string    `json:"device"`
-	Timestamp  time.Time `json:"timestamp"`
-	Details    string    `json:"details"`
+	ID         interface{} `json:"id"`
+	Event      string      `json:"event"`
+	Type       string      `json:"type"`
+	UserID     string      `json:"user_id"`
+	CardID     string      `json:"card_id"`
+	TemplateID string      `json:"template_id"`
+	Device     string      `json:"device"`
+	Timestamp  time.Time   `json:"timestamp"`
+	CreatedAt  string      `json:"created_at"`
+	Details    string      `json:"details"`
+	IPAddress  string      `json:"ip_address"`
+	UserAgent  string      `json:"user_agent"`
+	Metadata   interface{} `json:"metadata"`
 }
 
 // Pagination represents pagination metadata in list responses
@@ -284,8 +290,8 @@ type LedgerItemAccessPass struct {
 
 // LedgerItem represents a billing ledger item
 type LedgerItem struct {
-	CreatedAt  time.Time              `json:"created_at"`
-	Amount     float64                `json:"amount"`
+	CreatedAt  string                 `json:"created_at"`
+	Amount     interface{}            `json:"amount"`
 	ID         string                 `json:"id"`
 	Kind       string                 `json:"kind"`
 	Metadata   map[string]interface{} `json:"metadata"`
@@ -416,7 +422,7 @@ type CredentialProfile struct {
 	Name        string                 `json:"name"`
 	AppleID     string                 `json:"apple_id,omitempty"`
 	CreatedAt   string                 `json:"created_at"`
-	CardStorage map[string]interface{} `json:"card_storage,omitempty"`
+	CardStorage interface{} `json:"card_storage,omitempty"`
 	Keys        []interface{}          `json:"keys,omitempty"`
 	Files       []interface{}          `json:"files,omitempty"`
 }

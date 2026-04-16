@@ -57,7 +57,32 @@ func (s *AccessCardsService) List(ctx context.Context, params *models.ListKeysPa
 	var response struct {
 		Keys []models.Card `json:"keys"`
 	}
-	err := s.client.Request(ctx, http.MethodGet, "/v1/key-cards", params, &response)
+
+	query := url.Values{}
+	if params != nil {
+		if params.TemplateID != "" {
+			query.Set("template_id", params.TemplateID)
+		}
+		if params.State != "" {
+			query.Set("state", params.State)
+		}
+		if params.EmployeeID != "" {
+			query.Set("employee_id", params.EmployeeID)
+		}
+		if params.CardNumber != "" {
+			query.Set("card_number", params.CardNumber)
+		}
+		if params.SiteCode != "" {
+			query.Set("site_code", params.SiteCode)
+		}
+	}
+
+	path := "/v1/key-cards"
+	if len(query) > 0 {
+		path = path + "?" + query.Encode()
+	}
+
+	err := s.client.Request(ctx, http.MethodGet, path, nil, &response)
 	if err != nil {
 		return nil, fmt.Errorf("error listing cards: %w", err)
 	}
