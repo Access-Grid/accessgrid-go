@@ -484,8 +484,9 @@ func TestConsoleService_ListLedgerItems(t *testing.T) {
 
 	// First item: full nested structure
 	item := response.LedgerItems[0]
-	if item.CreatedAt != "2025-06-15T14:30:00Z" {
-		t.Errorf("item.CreatedAt = %v, want 2025-06-15T14:30:00Z", item.CreatedAt)
+	expectedTime, _ := time.Parse(time.RFC3339, "2025-06-15T14:30:00Z")
+	if !item.CreatedAt.Equal(expectedTime) {
+		t.Errorf("item.CreatedAt = %v, want %v", item.CreatedAt, expectedTime)
 	}
 	if item.ID != "li_abc123" {
 		t.Errorf("item.ID = %v, want li_abc123", item.ID)

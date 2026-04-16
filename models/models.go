@@ -290,7 +290,7 @@ type LedgerItemAccessPass struct {
 
 // LedgerItem represents a billing ledger item
 type LedgerItem struct {
-	CreatedAt  string                 `json:"created_at"`
+	CreatedAt  time.Time              `json:"created_at"`
 	Amount     interface{}            `json:"amount"`
 	ID         string                 `json:"id"`
 	Kind       string                 `json:"kind"`
