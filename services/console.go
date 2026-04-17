@@ -317,7 +317,9 @@ func (s *CredentialProfilesService) Create(ctx context.Context, params models.Cr
 
 // EventLog retrieves event logs for a specific template
 func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filters models.EventLogFilters) ([]models.Event, error) {
-	var events []models.Event
+	var response struct {
+		Logs []models.Event `json:"logs"`
+	}
 
 	// Build query parameters
 	query := url.Values{}
@@ -345,10 +347,10 @@ func (s *ConsoleService) EventLog(ctx context.Context, templateID string, filter
 
 	path := u.String()
 
-	err := s.client.Request(ctx, http.MethodGet, path, nil, &events)
+	err := s.client.Request(ctx, http.MethodGet, path, nil, &response)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching event log: %w", err)
 	}
 
-	return events, nil
+	return response.Logs, nil
 }

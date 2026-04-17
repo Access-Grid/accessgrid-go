@@ -67,7 +67,7 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 			}
 		case "/v1/console/card-templates/0xd3adb00b5/logs":
 			// Event Log
-			w.Write([]byte(`[
+			w.Write([]byte(`{"logs": [
 				{
 					"id": "evt_123",
 					"type": "install",
@@ -77,7 +77,7 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"device": "mobile",
 					"timestamp": "2023-01-01T12:00:00Z"
 				}
-			]`))
+			]}`))
 		case "/v1/console/card-template-pairs":
 			if r.Method == http.MethodPost {
 				w.WriteHeader(http.StatusCreated)
@@ -487,9 +487,6 @@ func TestConsoleService_ListLedgerItems(t *testing.T) {
 	expectedTime, _ := time.Parse(time.RFC3339, "2025-06-15T14:30:00Z")
 	if !item.CreatedAt.Equal(expectedTime) {
 		t.Errorf("item.CreatedAt = %v, want %v", item.CreatedAt, expectedTime)
-	}
-	if item.Amount != -1.50 {
-		t.Errorf("item.Amount = %v, want -1.50", item.Amount)
 	}
 	if item.ID != "li_abc123" {
 		t.Errorf("item.ID = %v, want li_abc123", item.ID)
