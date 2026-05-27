@@ -2,6 +2,9 @@ package services
 
 import (
 	"context"
+	"crypto/ecdh"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -39,6 +42,66 @@ func (s *ConsoleService) IosPreflight(ctx context.Context, params models.IosPref
 		return nil, fmt.Errorf("error fetching iOS preflight: %w", err)
 	}
 	return &result, nil
+}
+
+// PublishTemplate publishes a card template. For Apple templates this
+// transitions to "in-review"; for Android (Google) templates it becomes
+// "ready" immediately.
+func (s *ConsoleService) PublishTemplate(ctx context.Context, templateID string) (*models.PublishTemplateResponse, error) {
+	var result models.PublishTemplateResponse
+	path := fmt.Sprintf("/v1/console/card-templates/%s/publish", url.PathEscape(templateID))
+	err := s.client.Request(ctx, http.MethodPost, path, nil, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error publishing template: %w", err)
+	}
+	return &result, nil
+}
+
+// RevealSmartTap reveals the SmartTap private key for a card template,
+// decrypted client-side. The SDK generates a fresh ephemeral P-256 keypair
+// per call, submits the public half, and decrypts the server's response.
+// The returned RevealTemplatePrivateKey carries the plaintext PEM in
+// PrivateKey; the encrypted envelope is consumed internally and not exposed.
+func (s *ConsoleService) RevealSmartTap(ctx context.Context, templateID string) (*models.RevealTemplatePrivateKey, error) {
+	priv, _, err := generateKeypair()
+	if err != nil {
+		return nil, fmt.Errorf("error generating keypair: %w", err)
+	}
+	return s.revealSmartTapWithKey(ctx, templateID, priv)
+}
+
+// revealSmartTapWithKey is the test seam — same as RevealSmartTap but with
+// an injected keypair so tests can drive the captured wire-compat fixture.
+func (s *ConsoleService) revealSmartTapWithKey(ctx context.Context, templateID string, priv *ecdh.PrivateKey) (*models.RevealTemplatePrivateKey, error) {
+	der, err := x509.MarshalPKIXPublicKey(priv.PublicKey())
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling public key: %w", err)
+	}
+	pubPEM := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
+
+	path := fmt.Sprintf("/v1/console/card-templates/%s/smart-tap/reveal", url.PathEscape(templateID))
+	body := map[string]string{"client_public_key": string(pubPEM)}
+	var raw struct {
+		KeyVersion          string                 `json:"key_version"`
+		CollectorID         string                 `json:"collector_id"`
+		Fingerprint         string                 `json:"fingerprint"`
+		EncryptedPrivateKey map[string]interface{} `json:"encrypted_private_key"`
+	}
+	if err := s.client.Request(ctx, http.MethodPost, path, body, &raw); err != nil {
+		return nil, fmt.Errorf("error revealing SmartTap: %w", err)
+	}
+
+	plaintext, err := decryptEnvelope(raw.EncryptedPrivateKey, priv)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.RevealTemplatePrivateKey{
+		KeyVersion:  raw.KeyVersion,
+		CollectorID: raw.CollectorID,
+		Fingerprint: raw.Fingerprint,
+		PrivateKey:  string(plaintext),
+	}, nil
 }
 
 // WebhooksService handles webhook operations

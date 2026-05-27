@@ -155,4 +155,20 @@ type (
 
 	// CreateCredentialProfileParams defines parameters for creating a credential profile
 	CreateCredentialProfileParams = models.CreateCredentialProfileParams
+
+	// PublishTemplateResponse is the result of publishing a card template
+	PublishTemplateResponse = models.PublishTemplateResponse
+
+	// RevealTemplatePrivateKey is the result of a SmartTap private key reveal,
+	// with the plaintext PEM in PrivateKey
+	RevealTemplatePrivateKey = models.RevealTemplatePrivateKey
 )
+
+// ErrInvalidEnvelope is returned when a SmartTap reveal envelope is missing
+// required fields, contains non-base64 / non-PEM data, or otherwise can't be
+// parsed before the cryptographic operations begin.
+var ErrInvalidEnvelope = models.ErrInvalidEnvelope
+
+// ErrDecryptFailed is returned when AES-GCM auth-tag verification fails while
+// decrypting a SmartTap reveal envelope.
+var ErrDecryptFailed = models.ErrDecryptFailed

@@ -236,7 +236,7 @@ func buildSigPayload(path string) string {
 	}
 
 	lastPart := parts[len(parts)-1]
-	actions := map[string]bool{"suspend": true, "resume": true, "unlink": true, "delete": true}
+	actions := map[string]bool{"suspend": true, "resume": true, "unlink": true, "delete": true, "publish": true}
 
 	var resourceID string
 	if actions[lastPart] {
