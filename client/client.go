@@ -19,7 +19,7 @@ import (
 const (
 	baseURL        = "https://api.accessgrid.com"
 	defaultTimeout = 30 * time.Second
-	version        = "0.3.0"
+	version        = "0.4.0"
 )
 
 // APIError represents an error returned by the AccessGrid API
