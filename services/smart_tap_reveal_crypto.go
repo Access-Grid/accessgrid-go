@@ -3,24 +3,22 @@ package services
 // Internal crypto helpers for the SmartTap reveal flow.
 //
 // Driven by ConsoleService.RevealSmartTap; not part of the public SDK
-// surface. Uses Go's stdlib for ECDH + AES-GCM and golang.org/x/crypto/hkdf
-// for HKDF-SHA256 (added to stdlib only in Go 1.24; this SDK targets 1.23).
+// surface. Pure stdlib — crypto/ecdh + crypto/hkdf + crypto/aes + crypto/cipher.
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/ecdh"
 	"crypto/ecdsa"
+	"crypto/hkdf"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"io"
 
 	"github.com/Access-Grid/accessgrid-go/models"
-	"golang.org/x/crypto/hkdf"
 )
 
 const hkdfInfo = "accessgrid-smart-tap-reveal-v1"
@@ -92,8 +90,8 @@ func decryptEnvelope(envelope map[string]interface{}, priv *ecdh.PrivateKey) ([]
 		return nil, fmt.Errorf("%w: ECDH: %v", models.ErrInvalidEnvelope, err)
 	}
 
-	aesKey := make([]byte, 32)
-	if _, err := io.ReadFull(hkdf.New(sha256.New, sharedSecret, nil, []byte(hkdfInfo)), aesKey); err != nil {
+	aesKey, err := hkdf.Key(sha256.New, sharedSecret, nil, hkdfInfo, 32)
+	if err != nil {
 		return nil, fmt.Errorf("HKDF: %w", err)
 	}
 

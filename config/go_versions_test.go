@@ -11,7 +11,7 @@ import (
 // ══════════════════════════════════════════════════════════════════════════════
 // TARGET VERSION - Update this when upgrading Go
 // ══════════════════════════════════════════════════════════════════════════════
-const TARGET_GO = "1.23.5"
+const TARGET_GO = "1.24.13"
 
 func rootDir(t *testing.T) string {
 	t.Helper()
