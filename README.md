@@ -741,6 +741,8 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | POST /v1/console/card-templates | `Console.CreateTemplate()` | Y |
 | PUT /v1/console/card-templates/{id} | `Console.UpdateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/publish | `Console.PublishTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/smart-tap/reveal | `Console.RevealSmartTap()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
 | GET /v1/console/card-template-pairs | `Console.ListPassTemplatePairs()` | Y |
 | POST /v1/console/card-template-pairs | `Console.CreatePassTemplatePair()` | Y |
