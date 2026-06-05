@@ -19,7 +19,7 @@ import (
 const (
 	baseURL        = "https://api.accessgrid.com"
 	defaultTimeout = 30 * time.Second
-	version        = "0.3.0"
+	version        = "0.4.0"
 )
 
 // APIError represents an error returned by the AccessGrid API
@@ -236,7 +236,7 @@ func buildSigPayload(path string) string {
 	}
 
 	lastPart := parts[len(parts)-1]
-	actions := map[string]bool{"suspend": true, "resume": true, "unlink": true, "delete": true}
+	actions := map[string]bool{"suspend": true, "resume": true, "unlink": true, "delete": true, "publish": true}
 
 	var resourceID string
 	if actions[lastPart] {

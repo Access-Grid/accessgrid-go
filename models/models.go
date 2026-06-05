@@ -1,6 +1,35 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+// ErrInvalidEnvelope is returned when a SmartTap reveal envelope is missing
+// required fields, contains non-base64 / non-PEM data, or otherwise can't be
+// parsed before the cryptographic operations begin.
+var ErrInvalidEnvelope = errors.New("smart-tap reveal: invalid envelope")
+
+// ErrDecryptFailed is returned when AES-GCM auth-tag verification fails while
+// decrypting a SmartTap reveal envelope (wrong key, tampered envelope, or
+// wire-format drift between server and SDK).
+var ErrDecryptFailed = errors.New("smart-tap reveal: decryption failed")
+
+// PublishTemplateResponse is the result of publishing a card template.
+type PublishTemplateResponse struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
+// RevealTemplatePrivateKey is the result of a SmartTap private key reveal.
+// PrivateKey is the plaintext PEM, decrypted client-side by the SDK. The
+// encrypted envelope is consumed internally and not exposed.
+type RevealTemplatePrivateKey struct {
+	KeyVersion  string `json:"key_version"`
+	CollectorID string `json:"collector_id"`
+	Fingerprint string `json:"fingerprint"`
+	PrivateKey  string `json:"private_key"`
+}
 
 // Device represents a device associated with an access pass
 type Device struct {

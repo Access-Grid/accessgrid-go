@@ -400,6 +400,82 @@ func main() {
 }
 ```
 
+#### Publish a template
+
+```go
+package main
+
+import (
+   "context"
+   "fmt"
+
+   "github.com/Access-Grid/accessgrid-go"
+)
+
+func main() {
+   client, err := accessgrid.NewClient(accountID, secretKey)
+   if err != nil {
+       fmt.Printf("Error creating client: %v\n", err)
+       return
+   }
+
+   ctx := context.Background()
+   result, err := client.Console.PublishTemplate(ctx, "0xd3adb00b5")
+   if err != nil {
+       fmt.Printf("Error publishing template: %v\n", err)
+       return
+   }
+
+   fmt.Printf("Template %s status: %s\n", result.ID, result.Status)
+   // status is one of: "publishing" (already in flight), "in-review" (Apple
+   // queued), or "ready" (Android immediate)
+}
+```
+
+#### Reveal a SmartTap private key
+
+Fetches the template's SmartTap private key, decrypted client-side. The SDK generates a fresh ephemeral P-256 keypair per call, submits the public half, and decrypts the server's response — you get the plaintext PEM back without touching any crypto.
+
+```go
+package main
+
+import (
+   "context"
+   "errors"
+   "fmt"
+
+   "github.com/Access-Grid/accessgrid-go"
+)
+
+func main() {
+   client, err := accessgrid.NewClient(accountID, secretKey)
+   if err != nil {
+       fmt.Printf("Error creating client: %v\n", err)
+       return
+   }
+
+   ctx := context.Background()
+   reveal, err := client.Console.RevealSmartTap(ctx, "0xd3adb00b5")
+   if err != nil {
+       if errors.Is(err, accessgrid.ErrDecryptFailed) {
+           fmt.Println("Decryption failed — wire-format drift between server and SDK?")
+       } else if errors.Is(err, accessgrid.ErrInvalidEnvelope) {
+           fmt.Println("Server returned an invalid envelope")
+       } else {
+           fmt.Printf("Error revealing SmartTap: %v\n", err)
+       }
+       return
+   }
+
+   fmt.Printf("Key version:  %s\n", reveal.KeyVersion)
+   fmt.Printf("Collector ID: %s\n", reveal.CollectorID)
+   fmt.Printf("Fingerprint:  %s\n", reveal.Fingerprint)
+   fmt.Print(reveal.PrivateKey) // PEM — store in your reader/collector key vault
+}
+```
+
+The server enforces single-use on pubkey fingerprint and rate-limits to 1 per minute per account. The SDK uses a fresh keypair every call, so single-use is satisfied automatically.
+
 #### Get event logs
 
 ```go
@@ -665,6 +741,8 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | POST /v1/console/card-templates | `Console.CreateTemplate()` | Y |
 | PUT /v1/console/card-templates/{id} | `Console.UpdateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/publish | `Console.PublishTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/smart-tap/reveal | `Console.RevealSmartTap()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
 | GET /v1/console/card-template-pairs | `Console.ListPassTemplatePairs()` | Y |
 | POST /v1/console/card-template-pairs | `Console.CreatePassTemplatePair()` | Y |
