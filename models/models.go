@@ -149,17 +149,18 @@ type ListKeysParams struct {
 
 // Template represents a card template
 type Template struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	Platform    string         `json:"platform"`
-	UseCase     string         `json:"use_case"`
-	Protocol    string         `json:"protocol"`
-	WatchCount  int            `json:"watch_count"`
-	IPhoneCount int            `json:"iphone_count"`
-	Design      TemplateDesign `json:"design"`
-	SupportInfo SupportInfo    `json:"support_info"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID                 string         `json:"id"`
+	Name               string         `json:"name"`
+	Platform           string         `json:"platform"`
+	UseCase            string         `json:"use_case"`
+	Protocol           string         `json:"protocol"`
+	WatchCount         int            `json:"watch_count"`
+	IPhoneCount        int            `json:"iphone_count"`
+	AndroidDeviceLimit string         `json:"android_device_limit"`
+	Design             TemplateDesign `json:"design"`
+	SupportInfo        SupportInfo    `json:"support_info"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
 }
 
 // TemplateDesign represents the design elements of a card template
@@ -190,6 +191,7 @@ type CreateTemplateParams struct {
 	AllowOnMultipleDevices bool                   `json:"allow_on_multiple_devices,omitempty"`
 	WatchCount             int                    `json:"watch_count"`
 	IPhoneCount            int                    `json:"iphone_count"`
+	AndroidDeviceLimit     string                 `json:"android_device_limit,omitempty"`
 	BackgroundColor        string                 `json:"background_color,omitempty"`
 	LabelColor             string                 `json:"label_color,omitempty"`
 	LabelSecondaryColor    string                 `json:"label_secondary_color,omitempty"`
@@ -212,6 +214,7 @@ type UpdateTemplateParams struct {
 	AllowOnMultipleDevices *bool                  `json:"allow_on_multiple_devices,omitempty"`
 	WatchCount             int                    `json:"watch_count,omitempty"`
 	IPhoneCount            int                    `json:"iphone_count,omitempty"`
+	AndroidDeviceLimit     string                 `json:"android_device_limit,omitempty"`
 	BackgroundColor        string                 `json:"background_color,omitempty"`
 	LabelColor             string                 `json:"label_color,omitempty"`
 	LabelSecondaryColor    string                 `json:"label_secondary_color,omitempty"`
@@ -446,14 +449,14 @@ type UpdateLandingPageParams struct {
 
 // CredentialProfile represents a credential profile
 type CredentialProfile struct {
-	ID          string                 `json:"id"`
-	AID         string                 `json:"aid"`
-	Name        string                 `json:"name"`
-	AppleID     string                 `json:"apple_id,omitempty"`
-	CreatedAt   string                 `json:"created_at"`
-	CardStorage interface{} `json:"card_storage,omitempty"`
-	Keys        []interface{}          `json:"keys,omitempty"`
-	Files       []interface{}          `json:"files,omitempty"`
+	ID          string        `json:"id"`
+	AID         string        `json:"aid"`
+	Name        string        `json:"name"`
+	AppleID     string        `json:"apple_id,omitempty"`
+	CreatedAt   string        `json:"created_at"`
+	CardStorage interface{}   `json:"card_storage,omitempty"`
+	Keys        []interface{} `json:"keys,omitempty"`
+	Files       []interface{} `json:"files,omitempty"`
 }
 
 // KeyParam represents a key parameter for credential profile creation

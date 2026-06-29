@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -59,7 +60,8 @@ func setupConsoleTestServer() (*httptest.Server, *ConsoleService) {
 					"platform": "apple",
 					"protocol": "desfire",
 					"watch_count": 2,
-					"iphone_count": 3
+					"iphone_count": 3,
+					"android_device_limit": "all_devices"
 				}`))
 			} else if r.Method == http.MethodDelete {
 				// Delete Template
@@ -179,6 +181,7 @@ func TestConsoleService_CreateTemplate(t *testing.T) {
 		AllowOnMultipleDevices: true,
 		WatchCount:             2,
 		IPhoneCount:            3,
+		AndroidDeviceLimit:     "all_devices",
 		BackgroundColor:        "#FFFFFF",
 		LabelColor:             "#000000",
 		LabelSecondaryColor:    "#333333",
@@ -242,6 +245,24 @@ func TestConsoleService_UpdateTemplate(t *testing.T) {
 	}
 }
 
+func TestTemplateParams_SerializeAndroidDeviceLimit(t *testing.T) {
+	createJSON, err := json.Marshal(models.CreateTemplateParams{AndroidDeviceLimit: "all_devices"})
+	if err != nil {
+		t.Fatalf("marshal CreateTemplateParams: %v", err)
+	}
+	if !strings.Contains(string(createJSON), `"android_device_limit":"all_devices"`) {
+		t.Errorf("CreateTemplateParams JSON missing android_device_limit: %s", createJSON)
+	}
+
+	updateJSON, err := json.Marshal(models.UpdateTemplateParams{AndroidDeviceLimit: "all_devices"})
+	if err != nil {
+		t.Fatalf("marshal UpdateTemplateParams: %v", err)
+	}
+	if !strings.Contains(string(updateJSON), `"android_device_limit":"all_devices"`) {
+		t.Errorf("UpdateTemplateParams JSON missing android_device_limit: %s", updateJSON)
+	}
+}
+
 func TestConsoleService_ReadTemplate(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()
@@ -260,6 +281,9 @@ func TestConsoleService_ReadTemplate(t *testing.T) {
 	}
 	if template.WatchCount != 2 {
 		t.Errorf("ReadTemplate() template.WatchCount = %v, want %v", template.WatchCount, 2)
+	}
+	if template.AndroidDeviceLimit != "all_devices" {
+		t.Errorf("ReadTemplate() template.AndroidDeviceLimit = %v, want %v", template.AndroidDeviceLimit, "all_devices")
 	}
 }
 
