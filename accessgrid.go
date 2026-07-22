@@ -129,6 +129,12 @@ type (
 	// CreateWebhookParams defines parameters for creating a webhook
 	CreateWebhookParams = models.CreateWebhookParams
 
+	// WebhookVerification is the result of triggering webhook verification
+	WebhookVerification = models.WebhookVerification
+
+	// ParkingDetail is a single label/value parking entry on a multi-family pass
+	ParkingDetail = models.ParkingDetail
+
 	// HIDOrg represents an HID organization
 	HIDOrg = models.HIDOrg
 

@@ -387,6 +387,70 @@ func TestAccessCardsService_ProvisionWithNewParams(t *testing.T) {
 	}
 }
 
+func TestAccessCardsService_ProvisionMultiFamily(t *testing.T) {
+	var capturedBody string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		capturedBody = string(body)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"id": "0xres1d",
+			"card_template_id": "0xmultifam",
+			"full_name": "Jane Resident",
+			"state": "active",
+			"install_url": "https://accessgrid.com/install/0xres1d"
+		}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewAccessCardsService(c)
+
+	startDate, _ := time.Parse(time.RFC3339, "2025-01-01T00:00:00Z")
+	expDate, _ := time.Parse(time.RFC3339, "2025-12-31T00:00:00Z")
+
+	params := models.ProvisionParams{
+		CardTemplateID:  "0xmultifam",
+		FullName:        "Jane Resident",
+		Email:           "jane@example.com",
+		StartDate:       startDate,
+		ExpirationDate:  expDate,
+		PropertyName:    "Riverside Apartments",
+		PropertyAddress: "500 River Rd, Austin, TX 78701",
+		BuildingName:    "Building C",
+		Location:        "Austin",
+		StorageUnit:     "S-14",
+		ParkingAddress:  "Level 2, Spot 88",
+		BarcodeData:     "https://resident.example.com/jane",
+		UnitNumbers:     []string{"C-204", "C-205"},
+		ParkingDetails: []models.ParkingDetail{
+			{Label: "Reserved", Value: "P-88"},
+		},
+	}
+
+	ctx := context.Background()
+	_, err := service.Provision(ctx, params)
+	if err != nil {
+		t.Fatalf("Provision() error = %v", err)
+	}
+
+	wants := []string{
+		`"property_name":"Riverside Apartments"`,
+		`"property_address":"500 River Rd, Austin, TX 78701"`,
+		`"building_name":"Building C"`,
+		`"storage_unit":"S-14"`,
+		`"parking_address":"Level 2, Spot 88"`,
+		`"barcode_data":"https://resident.example.com/jane"`,
+		`"unit_numbers":["C-204","C-205"]`,
+		`"parking_details":[{"label":"Reserved","value":"P-88"}]`,
+	}
+	for _, want := range wants {
+		if !strings.Contains(capturedBody, want) {
+			t.Errorf("expected %s in request body, got %s", want, capturedBody)
+		}
+	}
+}
+
 func TestAccessCardsService_ErrorPropagation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

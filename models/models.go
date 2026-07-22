@@ -117,6 +117,21 @@ type ProvisionParams struct {
 	EmployeePhoto          string                 `json:"employee_photo,omitempty"`
 	Temporary              bool                   `json:"temporary,omitempty"`
 	Metadata               map[string]interface{} `json:"metadata,omitempty"`
+	// Multi-family (Resident Key) fields — for multi_family use-case templates.
+	PropertyName    string          `json:"property_name,omitempty"`
+	PropertyAddress string          `json:"property_address,omitempty"`
+	BuildingName    string          `json:"building_name,omitempty"`
+	StorageUnit     string          `json:"storage_unit,omitempty"`
+	ParkingAddress  string          `json:"parking_address,omitempty"`
+	BarcodeData     string          `json:"barcode_data,omitempty"`
+	UnitNumbers     []string        `json:"unit_numbers,omitempty"`
+	ParkingDetails  []ParkingDetail `json:"parking_details,omitempty"`
+}
+
+// ParkingDetail is a single label/value parking entry on a multi-family pass.
+type ParkingDetail struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 // UpdateParams defines parameters for updating an existing card
@@ -136,6 +151,15 @@ type UpdateParams struct {
 	CompanyAddress string     `json:"company_address,omitempty"`
 	ExpirationDate *time.Time `json:"expiration_date,omitempty"`
 	EmployeePhoto  string     `json:"employee_photo,omitempty"`
+	// Multi-family (Resident Key) fields — for multi_family use-case templates.
+	PropertyName    string          `json:"property_name,omitempty"`
+	PropertyAddress string          `json:"property_address,omitempty"`
+	BuildingName    string          `json:"building_name,omitempty"`
+	StorageUnit     string          `json:"storage_unit,omitempty"`
+	ParkingAddress  string          `json:"parking_address,omitempty"`
+	BarcodeData     string          `json:"barcode_data,omitempty"`
+	UnitNumbers     []string        `json:"unit_numbers,omitempty"`
+	ParkingDetails  []ParkingDetail `json:"parking_details,omitempty"`
 }
 
 // ListKeysParams defines parameters for filtering cards
@@ -369,6 +393,12 @@ type Webhook struct {
 	PrivateKey       string   `json:"private_key,omitempty"`
 	ClientCert       string   `json:"client_cert,omitempty"`
 	CertExpiresAt    string   `json:"cert_expires_at,omitempty"`
+}
+
+// WebhookVerification is the result of triggering webhook verification.
+type WebhookVerification struct {
+	ID       string `json:"id"`
+	Verified bool   `json:"verified"`
 }
 
 // WebhooksResponse represents the response from listing webhooks

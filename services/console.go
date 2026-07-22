@@ -147,6 +147,17 @@ func (s *WebhooksService) Delete(ctx context.Context, webhookID string) error {
 	return nil
 }
 
+// Verify triggers verification for a webhook by ID
+func (s *WebhooksService) Verify(ctx context.Context, webhookID string) (*models.WebhookVerification, error) {
+	var result models.WebhookVerification
+	path := fmt.Sprintf("/v1/console/webhooks/%s/verify", url.PathEscape(webhookID))
+	err := s.client.Request(ctx, http.MethodPost, path, nil, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error verifying webhook: %w", err)
+	}
+	return &result, nil
+}
+
 // HIDService provides access to HID-related services
 type HIDService struct {
 	Orgs *HIDOrgsService
@@ -376,6 +387,16 @@ func (s *CredentialProfilesService) Create(ctx context.Context, params models.Cr
 		return nil, fmt.Errorf("error creating credential profile: %w", err)
 	}
 	return &profile, nil
+}
+
+// Delete deletes a credential profile by ID
+func (s *CredentialProfilesService) Delete(ctx context.Context, credentialProfileID string) error {
+	path := fmt.Sprintf("/v1/console/credential-profiles/%s", url.PathEscape(credentialProfileID))
+	err := s.client.Request(ctx, http.MethodDelete, path, nil, nil)
+	if err != nil {
+		return fmt.Errorf("error deleting credential profile: %w", err)
+	}
+	return nil
 }
 
 // EventLog retrieves event logs for a specific template

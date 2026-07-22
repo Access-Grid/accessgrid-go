@@ -827,6 +827,57 @@ func TestWebhooksService_Delete(t *testing.T) {
 	}
 }
 
+func TestWebhooksService_Verify_AlreadyVerified(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/console/webhooks/wh_123/verify" {
+			t.Errorf("expected verify path, got %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "wh_123", "verified": true}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	result, err := service.Verify(ctx, "wh_123")
+	if err != nil {
+		t.Fatalf("Verify() error = %v", err)
+	}
+	if result.ID != "wh_123" {
+		t.Errorf("result.ID = %v, want wh_123", result.ID)
+	}
+	if !result.Verified {
+		t.Errorf("result.Verified = false, want true")
+	}
+}
+
+func TestWebhooksService_Verify_HandshakeInitiated(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(`{"id": "wh_123", "verified": false}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	result, err := service.Verify(ctx, "wh_123")
+	if err != nil {
+		t.Fatalf("Verify() error = %v", err)
+	}
+	if result.Verified {
+		t.Errorf("result.Verified = true, want false")
+	}
+}
+
 // --- HID Orgs ---
 
 func TestHIDOrgsService_Create(t *testing.T) {
@@ -1201,6 +1252,30 @@ func TestCredentialProfilesService_Create(t *testing.T) {
 	}
 	if profile.AID != "AID_NEW" {
 		t.Errorf("profile.AID = %v, want AID_NEW", profile.AID)
+	}
+}
+
+func TestCredentialProfilesService_Delete(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/v1/console/credential-profiles/cp_123") {
+			t.Errorf("expected credential-profile path, got %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "cp_123", "deactivated": true}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewCredentialProfilesService(c)
+
+	ctx := context.Background()
+	err := service.Delete(ctx, "cp_123")
+	if err != nil {
+		t.Errorf("Delete() error = %v", err)
 	}
 }
 
