@@ -318,6 +318,39 @@ func TestConsoleService_DeleteTemplate(t *testing.T) {
 	}
 }
 
+func TestConsoleService_PublishTemplate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/console/card-templates/tmpl_123/publish" {
+			t.Errorf("expected publish path, got %s", r.URL.Path)
+		}
+		// Body must be a non-empty {} so the request signs a verifiable payload
+		// (an empty body with no sig_payload would fail server-side auth).
+		body, _ := io.ReadAll(r.Body)
+		if strings.TrimSpace(string(body)) != "{}" {
+			t.Errorf("expected request body {}, got %q", string(body))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "tmpl_123", "status": "in-review"}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	result, err := service.PublishTemplate(ctx, "tmpl_123")
+	if err != nil {
+		t.Fatalf("PublishTemplate() error = %v", err)
+	}
+	if result.Status != "in-review" {
+		t.Errorf("result.Status = %v, want in-review", result.Status)
+	}
+}
+
 func TestConsoleService_EventLog(t *testing.T) {
 	server, service := setupConsoleTestServer()
 	defer server.Close()

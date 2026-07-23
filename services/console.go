@@ -50,7 +50,9 @@ func (s *ConsoleService) IosPreflight(ctx context.Context, params models.IosPref
 func (s *ConsoleService) PublishTemplate(ctx context.Context, templateID string) (*models.PublishTemplateResponse, error) {
 	var result models.PublishTemplateResponse
 	path := fmt.Sprintf("/v1/console/card-templates/%s/publish", url.PathEscape(templateID))
-	err := s.client.Request(ctx, http.MethodPost, path, nil, &result)
+	// Send a {} body (like suspend/resume/etc.) so the request signs a non-empty
+	// payload the server can verify; an empty body with no sig_payload 401s.
+	err := s.client.Request(ctx, http.MethodPost, path, map[string]string{}, &result)
 	if err != nil {
 		return nil, fmt.Errorf("error publishing template: %w", err)
 	}
