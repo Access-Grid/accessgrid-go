@@ -151,7 +151,9 @@ func (s *WebhooksService) Delete(ctx context.Context, webhookID string) error {
 func (s *WebhooksService) Verify(ctx context.Context, webhookID string) (*models.WebhookVerification, error) {
 	var result models.WebhookVerification
 	path := fmt.Sprintf("/v1/console/webhooks/%s/verify", url.PathEscape(webhookID))
-	err := s.client.Request(ctx, http.MethodPost, path, nil, &result)
+	// Send a {} body (like suspend/resume/etc.) so the request signs a non-empty
+	// payload; the server verifies the signature against the request body.
+	err := s.client.Request(ctx, http.MethodPost, path, map[string]string{}, &result)
 	if err != nil {
 		return nil, fmt.Errorf("error verifying webhook: %w", err)
 	}

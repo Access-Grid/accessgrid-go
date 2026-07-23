@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -834,6 +835,12 @@ func TestWebhooksService_Verify_AlreadyVerified(t *testing.T) {
 		}
 		if r.URL.Path != "/v1/console/webhooks/wh_123/verify" {
 			t.Errorf("expected verify path, got %s", r.URL.Path)
+		}
+		// Body must be a non-empty {} so the request signs a verifiable payload
+		// (an empty body with no sig_payload would fail server-side auth).
+		body, _ := io.ReadAll(r.Body)
+		if strings.TrimSpace(string(body)) != "{}" {
+			t.Errorf("expected request body {}, got %q", string(body))
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
