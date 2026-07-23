@@ -308,8 +308,25 @@ func TestConsoleService_ListTemplates(t *testing.T) {
 }
 
 func TestConsoleService_DeleteTemplate(t *testing.T) {
-	server, service := setupConsoleTestServer()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/v1/console/card-templates/0xd3adb00b5") {
+			t.Errorf("expected card-template path, got %s", r.URL.Path)
+		}
+		// Empty-body DELETE: signature is verified via the sig_payload query param.
+		if got := r.URL.Query().Get("sig_payload"); got != `{"id":"0xd3adb00b5"}` {
+			t.Errorf("expected sig_payload {\"id\":\"0xd3adb00b5\"}, got %q", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "0xd3adb00b5", "deactivated": true}`))
+	}))
 	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
 
 	ctx := context.Background()
 	err := service.DeleteTemplate(ctx, "0xd3adb00b5")
@@ -1302,6 +1319,10 @@ func TestCredentialProfilesService_Delete(t *testing.T) {
 		}
 		if !strings.Contains(r.URL.Path, "/v1/console/credential-profiles/cp_123") {
 			t.Errorf("expected credential-profile path, got %s", r.URL.Path)
+		}
+		// Empty-body DELETE: signature is verified via the sig_payload query param.
+		if got := r.URL.Query().Get("sig_payload"); got != `{"id":"cp_123"}` {
+			t.Errorf("expected sig_payload {\"id\":\"cp_123\"}, got %q", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
