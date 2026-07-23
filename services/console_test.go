@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -307,13 +308,63 @@ func TestConsoleService_ListTemplates(t *testing.T) {
 }
 
 func TestConsoleService_DeleteTemplate(t *testing.T) {
-	server, service := setupConsoleTestServer()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/v1/console/card-templates/0xd3adb00b5") {
+			t.Errorf("expected card-template path, got %s", r.URL.Path)
+		}
+		// Empty-body DELETE: signature is verified via the sig_payload query param.
+		if got := r.URL.Query().Get("sig_payload"); got != `{"id":"0xd3adb00b5"}` {
+			t.Errorf("expected sig_payload {\"id\":\"0xd3adb00b5\"}, got %q", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "0xd3adb00b5", "deactivated": true}`))
+	}))
 	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
 
 	ctx := context.Background()
 	err := service.DeleteTemplate(ctx, "0xd3adb00b5")
 	if err != nil {
 		t.Errorf("DeleteTemplate() error = %v", err)
+	}
+}
+
+func TestConsoleService_PublishTemplate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/console/card-templates/tmpl_123/publish" {
+			t.Errorf("expected publish path, got %s", r.URL.Path)
+		}
+		// Body must be a non-empty {} so the request signs a verifiable payload
+		// (an empty body with no sig_payload would fail server-side auth).
+		body, _ := io.ReadAll(r.Body)
+		if strings.TrimSpace(string(body)) != "{}" {
+			t.Errorf("expected request body {}, got %q", string(body))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "tmpl_123", "status": "in-review"}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewConsoleService(c)
+
+	ctx := context.Background()
+	result, err := service.PublishTemplate(ctx, "tmpl_123")
+	if err != nil {
+		t.Fatalf("PublishTemplate() error = %v", err)
+	}
+	if result.Status != "in-review" {
+		t.Errorf("result.Status = %v, want in-review", result.Status)
 	}
 }
 
@@ -827,6 +878,63 @@ func TestWebhooksService_Delete(t *testing.T) {
 	}
 }
 
+func TestWebhooksService_Verify_AlreadyVerified(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/console/webhooks/wh_123/verify" {
+			t.Errorf("expected verify path, got %s", r.URL.Path)
+		}
+		// Body must be a non-empty {} so the request signs a verifiable payload
+		// (an empty body with no sig_payload would fail server-side auth).
+		body, _ := io.ReadAll(r.Body)
+		if strings.TrimSpace(string(body)) != "{}" {
+			t.Errorf("expected request body {}, got %q", string(body))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "wh_123", "verified": true}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	result, err := service.Verify(ctx, "wh_123")
+	if err != nil {
+		t.Fatalf("Verify() error = %v", err)
+	}
+	if result.ID != "wh_123" {
+		t.Errorf("result.ID = %v, want wh_123", result.ID)
+	}
+	if !result.Verified {
+		t.Errorf("result.Verified = false, want true")
+	}
+}
+
+func TestWebhooksService_Verify_HandshakeInitiated(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(`{"id": "wh_123", "verified": false}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewWebhooksService(c)
+
+	ctx := context.Background()
+	result, err := service.Verify(ctx, "wh_123")
+	if err != nil {
+		t.Fatalf("Verify() error = %v", err)
+	}
+	if result.Verified {
+		t.Errorf("result.Verified = true, want false")
+	}
+}
+
 // --- HID Orgs ---
 
 func TestHIDOrgsService_Create(t *testing.T) {
@@ -1201,6 +1309,34 @@ func TestCredentialProfilesService_Create(t *testing.T) {
 	}
 	if profile.AID != "AID_NEW" {
 		t.Errorf("profile.AID = %v, want AID_NEW", profile.AID)
+	}
+}
+
+func TestCredentialProfilesService_Delete(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "/v1/console/credential-profiles/cp_123") {
+			t.Errorf("expected credential-profile path, got %s", r.URL.Path)
+		}
+		// Empty-body DELETE: signature is verified via the sig_payload query param.
+		if got := r.URL.Query().Get("sig_payload"); got != `{"id":"cp_123"}` {
+			t.Errorf("expected sig_payload {\"id\":\"cp_123\"}, got %q", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id": "cp_123", "deactivated": true}`))
+	}))
+	defer server.Close()
+
+	c, _ := client.NewClient("test-account", "test-secret", client.WithBaseURL(server.URL))
+	service := NewCredentialProfilesService(c)
+
+	ctx := context.Background()
+	err := service.Delete(ctx, "cp_123")
+	if err != nil {
+		t.Errorf("Delete() error = %v", err)
 	}
 }
 

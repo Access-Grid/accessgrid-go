@@ -94,6 +94,31 @@ func main() {
 }
 ```
 
+#### Provision a multi-family (resident) pass
+
+For `multi_family` templates, `ProvisionParams` carries resident-specific fields:
+
+```go
+params := accessgrid.ProvisionParams{
+    CardTemplateID:  "0xmultifam",
+    FullName:        "Jane Resident",
+    Email:           "jane@example.com",
+    StartDate:       time.Now().UTC(),
+    ExpirationDate:  time.Now().UTC().AddDate(1, 0, 0),
+    PropertyName:    "Riverside Apartments",
+    PropertyAddress: "500 River Rd, Austin, TX 78701",
+    BuildingName:    "Building C",
+    Location:        "Austin",
+    StorageUnit:     "S-14",
+    ParkingAddress:  "Level 2, Spot 88",
+    BarcodeData:     "https://resident.example.com/jane",
+    UnitNumbers:     []string{"C-204"},
+    ParkingDetails:  []accessgrid.ParkingDetail{{Label: "Reserved", Value: "P-88"}},
+}
+
+card, err := client.AccessCards.Provision(ctx, params)
+```
+
 #### Get a card
 
 ```go
@@ -478,6 +503,16 @@ func main() {
 
 The server enforces single-use on pubkey fingerprint and rate-limits to 1 per minute per account. The SDK uses a fresh keypair every call, so single-use is satisfied automatically.
 
+#### Delete a template
+
+```go
+err = client.Console.DeleteTemplate(ctx, "0xd3adb00b5")
+if err != nil {
+    fmt.Printf("Error deleting template: %v\n", err)
+    return
+}
+```
+
 #### Get event logs
 
 ```go
@@ -680,6 +715,16 @@ fmt.Printf("Profile created: %s\n", profile.ID)
 fmt.Printf("AID: %s\n", profile.AID)
 ```
 
+#### Delete a credential profile
+
+```go
+err = client.Console.CredentialProfiles.Delete(ctx, "a1b2c3d4e5f")
+if err != nil {
+    fmt.Printf("Error deleting credential profile: %v\n", err)
+    return
+}
+```
+
 ## Configuration
 
 The SDK can be configured with custom options:
@@ -745,6 +790,7 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | GET /v1/console/card-templates/{id} | `Console.ReadTemplate()` | Y |
 | POST /v1/console/card-templates/{id}/publish | `Console.PublishTemplate()` | Y |
 | POST /v1/console/card-templates/{id}/smart-tap/reveal | `Console.RevealSmartTap()` | Y |
+| DELETE /v1/console/card-templates/{id} | `Console.DeleteTemplate()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `Console.EventLog()` | Y |
 | GET /v1/console/card-template-pairs | `Console.ListPassTemplatePairs()` | Y |
 | POST /v1/console/card-template-pairs | `Console.CreatePassTemplatePair()` | Y |
@@ -753,11 +799,13 @@ Never expose your `secretKey` in source code. Always use environment variables o
 | GET /v1/console/webhooks | `Console.Webhooks.List()` | Y |
 | POST /v1/console/webhooks | `Console.Webhooks.Create()` | Y |
 | DELETE /v1/console/webhooks/{id} | `Console.Webhooks.Delete()` | Y |
+| POST /v1/console/webhooks/{id}/verify | `Console.Webhooks.Verify()` | Y |
 | GET /v1/console/landing-pages | `Console.ListLandingPages()` | Y |
 | POST /v1/console/landing-pages | `Console.CreateLandingPage()` | Y |
 | PUT /v1/console/landing-pages/{id} | `Console.UpdateLandingPage()` | Y |
 | GET /v1/console/credential-profiles | `Console.CredentialProfiles.List()` | Y |
 | POST /v1/console/credential-profiles | `Console.CredentialProfiles.Create()` | Y |
+| DELETE /v1/console/credential-profiles/{id} | `Console.CredentialProfiles.Delete()` | Y |
 | POST /v1/console/hid/orgs | `Console.HID.Orgs.Create()` | Y |
 | POST /v1/console/hid/orgs/activate | `Console.HID.Orgs.Activate()` | Y |
 | GET /v1/console/hid/orgs | `Console.HID.Orgs.List()` | Y |

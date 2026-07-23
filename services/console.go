@@ -50,7 +50,9 @@ func (s *ConsoleService) IosPreflight(ctx context.Context, params models.IosPref
 func (s *ConsoleService) PublishTemplate(ctx context.Context, templateID string) (*models.PublishTemplateResponse, error) {
 	var result models.PublishTemplateResponse
 	path := fmt.Sprintf("/v1/console/card-templates/%s/publish", url.PathEscape(templateID))
-	err := s.client.Request(ctx, http.MethodPost, path, nil, &result)
+	// Send a {} body (like suspend/resume/etc.) so the request signs a non-empty
+	// payload the server can verify; an empty body with no sig_payload 401s.
+	err := s.client.Request(ctx, http.MethodPost, path, map[string]string{}, &result)
 	if err != nil {
 		return nil, fmt.Errorf("error publishing template: %w", err)
 	}
@@ -145,6 +147,19 @@ func (s *WebhooksService) Delete(ctx context.Context, webhookID string) error {
 		return fmt.Errorf("error deleting webhook: %w", err)
 	}
 	return nil
+}
+
+// Verify triggers verification for a webhook by ID
+func (s *WebhooksService) Verify(ctx context.Context, webhookID string) (*models.WebhookVerification, error) {
+	var result models.WebhookVerification
+	path := fmt.Sprintf("/v1/console/webhooks/%s/verify", url.PathEscape(webhookID))
+	// Send a {} body (like suspend/resume/etc.) so the request signs a non-empty
+	// payload; the server verifies the signature against the request body.
+	err := s.client.Request(ctx, http.MethodPost, path, map[string]string{}, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error verifying webhook: %w", err)
+	}
+	return &result, nil
 }
 
 // HIDService provides access to HID-related services
@@ -376,6 +391,16 @@ func (s *CredentialProfilesService) Create(ctx context.Context, params models.Cr
 		return nil, fmt.Errorf("error creating credential profile: %w", err)
 	}
 	return &profile, nil
+}
+
+// Delete deletes a credential profile by ID
+func (s *CredentialProfilesService) Delete(ctx context.Context, credentialProfileID string) error {
+	path := fmt.Sprintf("/v1/console/credential-profiles/%s", url.PathEscape(credentialProfileID))
+	err := s.client.Request(ctx, http.MethodDelete, path, nil, nil)
+	if err != nil {
+		return fmt.Errorf("error deleting credential profile: %w", err)
+	}
+	return nil
 }
 
 // EventLog retrieves event logs for a specific template
